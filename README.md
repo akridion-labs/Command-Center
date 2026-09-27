@@ -1,75 +1,40 @@
-# React + TypeScript + Vite
+# command-center
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Part of **Akridion Labs**. Built on the Vyom server (`AKRIDION-AI-01`), versioned at
+[https://github.com/akridion-labs/Command-Center](https://github.com/akridion-labs/Command-Center). The brief the agent builds against is **[docs/phase-1.md](docs/phase-1.md)** - read it first.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+@react-three/fiber, react, tailwindcss, three, typescript, vite, vitest
 
-## React Compiler
+## Run it
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev        # vite
+npm run build      # tsc -b && vite build
+npm run lint       # eslint .
+npm run preview    # vite preview
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+## Open it
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- On the server: `ojas open command-center` - VS Code on Windows, connected to Ubuntu (WSL).
+- From another machine: clone `https://github.com/akridion-labs/Command-Center.git`, or Remote-SSH to the server over Tailscale.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## How we work
 
-```
+| rule | why |
+|---|---|
+| `main` is always releasable; work happens on branches (`feat/...`, `fix/...`, `try/...` for model experiments) | a broken experiment never blocks anyone |
+| small commits, messages that say WHY (`fix: panel shows NOT BUILT instead of []`) | the weekly engineering digest quotes them to the brain |
+| pushing is a person's act - the dev agent commits locally only | nothing reaches GitHub unreviewed |
+| libraries come from npm into the build - never a CDN `<script>`; never `npm i --force` | `ojas assets` checks the first; `--force` hides real conflicts |
+| no keys, tokens or passwords in the repo - ever | server secrets live in `~/.vyom/secrets.env`; the scanner flags leaks |
+
+## The dev agent and the brain
+
+- Build with the dev agent: `claude` (your Claude plan) or `ojas claude --local` (local models, Muse first),
+  then `/start-story implement docs/phase-1.md`.
+- The brain reads this repo daily (`repo:command-center`); ask it: `ojas repo command-center "where is X?"`.
+- Which model built what: `ojas devlog`. This week's decisions: `ojas thinking --print`.
