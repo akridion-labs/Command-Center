@@ -37,7 +37,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | # | slice | read | status | PROOF - the command that must pass |
 |---|---|---|---|---|
 | 1 | scaffold: Vite react-ts, deps, brief, logo, agent picker, README | §5.1 | ✅ 26-27 Sep (main) | `git log --oneline` shows it |
-| 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ⏳ tried 27 Sep on `try/l0` by coder-dev (40 messages), result NOT verified - verify it, or redo it | `npm run build && npx vitest run` |
+| 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ⏳ 28 Sep: build ✅ + 1 test ✅ on `try/l0` (coder-dev) - but the changes were NEVER COMMITTED, and the config must be checked for `base` + proxy before it merges | `npm run build && npx vitest run` + `grep -E "console|proxy|tailwind" vite.config.ts` |
 | 3 | `src/api.ts` - the `Panel<T>` wrapper + tests for 401 / 403 / 501 | §5.3 | ⬜ | `npx vitest run` |
 | 4 | panel shell + a `NotBuilt` component that shows `why` (never `[]`) + test | §6 | ⬜ | `npx vitest run` |
 | 5 | the six panels - ONE PANEL PER STORY, each from its real endpoint | §2, §6 | ⬜ 0/6 | a render test per panel incl. NOT BUILT |
@@ -53,6 +53,37 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 slices 2-4 and 6-8; `claude` on your plan for design-heavy ones (5, 10). Pin a
 model for a project with `echo coder-dev > .ojas-model`. After every session:
 `ojas agent-check` (did the agent follow its own loop, which model did the work).
+
+**When a slice is done - the brain completes its context (131):** tick the row, commit,
+then `ojas publish` - it refreshes the thinking digest, the docs, the vault, this repo,
+the agent's lessons and every conversation, proves the brain has the newest rows, and
+prints the knowledge stats. The agent's own records (`dev/.agent/*.md`) are created by
+its `scaffold.py` automatically every time `ojas claude` starts, and checked by its
+`verify_run.py` when it exits - they no longer depend on the model remembering.
+
+**The design can change - keep it versioned (131).** The agent reads the design at the
+path in §5.7 at the start of every UI slice, so an edited design IS read again. If you
+MOVE or rework it, put the new version in the project: `mkdir -p docs/design && cp
+"<new .dc.html>" docs/design/ && git add docs/design && git commit -m "design: v2"` and
+say "design v2 is docs/design/..." in the story - git then shows exactly what changed,
+and the brain indexes it with the repo. *(Revises "read in place, never copied" (116):
+that was right for a fixed design; a changing one needs versions.)*
+
+## 0b · How we build it: the AI-DLC cycle (and why it is knowledge)
+
+AI-DLC (AI-Driven Development Lifecycle) = the work runs in three phases, and each
+leaves an artifact the brain keeps. Mapped to what already exists here:
+
+| phase | what happens | artifact the brain keeps |
+|---|---|---|
+| **Inception** - intent → units of work | the slices in §0, each with a PROOF; design + brief | this file (§0), `docs/design/` |
+| **Construction** - one "bolt" per slice | plan (Muse, Plan Mode) → build (qwen3-coder) → test → review → commit | `dev/.agent/*` (analysis, asks, test scenarios, efficiency), commits, MODEL_LEDGER, the session record |
+| **Operations** - run it, learn | build → `ojas assets` → serve at `/console/` → desktop app; `ojas agent-check`, `ojas knowledge` | runbook rows, the weekly/daily ENGINEERING_THINKING digest, lessons |
+
+So every bolt feeds the brain the same three things: WHAT was decided (commits, §0 row),
+HOW it was decided (analysis + thinking digest), and WHO/WHICH model did it (ledger).
+Your dev-agent package also ships an **AI-DLC build** (`Devloper_agent-2/AIDLC/`) -
+switch to it only as a deliberate decision; the cycle above works with the build you have.
 
 **Setup is not in this brief.** Machine, tools, models and keys live in
 `EXECUTION_ORDER.md`; what is still open there, `ojas where` answers from the server.
@@ -392,7 +423,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 423 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 428 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
