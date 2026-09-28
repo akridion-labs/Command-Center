@@ -19,6 +19,46 @@ return visit, work out where it stopped.
 
 ---
 
+## 0 · PROGRESS AND THE NEXT SLICE — the agent reads THIS first (28 Sep 2026)
+
+**One slice per story.** Start every session with:
+
+```
+/start-story implement the NEXT slice in docs/phase-1.md §0 - read §0 and the section it names, nothing else
+```
+
+The NEXT slice is the first row below that is not ✅. When it is done the agent
+(1) runs its PROOF command, (2) commits on a branch, (3) changes that row to
+`✅ <date> <short commit hash>` **in this file inside the project**, and stops.
+Why one slice and "nothing else": a local model has a 64K window; this brief is
+~10K tokens and the protocol is more - asking for "Phase 1" makes it read
+everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
+
+| # | slice | read | status | PROOF - the command that must pass |
+|---|---|---|---|---|
+| 1 | scaffold: Vite react-ts, deps, brief, logo, agent picker, README | §5.1 | ✅ 26-27 Sep (main) | `git log --oneline` shows it |
+| 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ⏳ tried 27 Sep on `try/l0` by coder-dev (40 messages), result NOT verified - verify it, or redo it | `npm run build && npx vitest run` |
+| 3 | `src/api.ts` - the `Panel<T>` wrapper + tests for 401 / 403 / 501 | §5.3 | ⬜ | `npx vitest run` |
+| 4 | panel shell + a `NotBuilt` component that shows `why` (never `[]`) + test | §6 | ⬜ | `npx vitest run` |
+| 5 | the six panels - ONE PANEL PER STORY, each from its real endpoint | §2, §6 | ⬜ 0/6 | a render test per panel incl. NOT BUILT |
+| 6 | ask box → `/vyom/ask`, sources under the answer | §6 | ⬜ | test + a real question in `npm run dev` |
+| 7 | tiles from `/vyom/me` `options` + show `config_problem` | §6 | ⬜ | test |
+| 8 | build, `ojas assets`, serve at `/console/`, zero CSP errors | §5.4-5.5 | ⬜ | `ojas assets ~/Projects/command-center/dist` clean + `curl … /console/` → 200 |
+| 9 | its own app window at logon | §5.6 | ⬜ | `vyom_deck_app.ps1 -Status` both OK |
+| 10 | three.js background (Phase 1b, after the panels) | §3 3D | ⬜ | renders; RDP not stuttering |
+| 11 | founder vs COO/CTO tiles PROVEN by logging in as each | §6 | ⬜ | two logins, two screenshots |
+
+**Who drives which slice** (runbook 130): `ojas claude --local` = the LOCAL team
+(Muse plans in Plan Mode, qwen3-coder builds, qwen3.5 small tasks) - good for
+slices 2-4 and 6-8; `claude` on your plan for design-heavy ones (5, 10). Pin a
+model for a project with `echo coder-dev > .ojas-model`. After every session:
+`ojas agent-check` (did the agent follow its own loop, which model did the work).
+
+**Setup is not in this brief.** Machine, tools, models and keys live in
+`EXECUTION_ORDER.md`; what is still open there, `ojas where` answers from the server.
+
+---
+
 ## 1 · What this is, and what it is not
 
 **IS:** a static front end for six panels that already exist as HTTP endpoints
@@ -82,8 +122,15 @@ cp "/mnt/c/Users/akrid/Downloads/Vyom Command Deck Console/uploads/logo.jpeg" \
 | Local, private | the `code_generation` chain in `model_registry.yaml` (today `qwen2.5-coder:7b`) | Ojas code answers over our repo (`ojas repo`) | driving the full protocol: a 7-9B model cannot hold it (`provider_router.py` refuses) |
 | Local candidates (fit 12 GB) | **`qwen3.5:9b-q4_K_M`** (6.6 GB, reads images) · **`gemma4:12b-it-q4_K_M`** (7.6 GB, reads images) | can LOOK at the design images; promote only after `ojas benchmark` (STEP 6) | - |
 | Local, Meta | **`muse-glimmer:30b-q4_K_M`** (18 GB, Meta's current open model) | dev help: tools, vision, 128K. ⚠️ does NOT fit 12 GB, part runs on the CPU; measure with `ollama ps` + `ojas benchmark` | a brain lane, until it passes the 100%-GPU rule (114b) |
-| ⛔ too big for 12 GB | `qwen3-coder-next` (52 GB), `qwen3-coder:30b`, `qwen3.5:27b` coding tags | - | - |
-| Cloud, FREE, via the Service Hub (122e) | **Kimi K2.6** - built for coding-driven UI/UX - from `nvidia_nim` (`moonshotai/kimi-k2.6`) or `openrouter_free` (`moonshotai/kimi-k2.6:free`, your existing key) | `ojas route --class PUBLIC --cap design "…"` for layout/UX ideas; `--cap coding` for React/three.js snippets | vault text or company data - LOCAL_ONLY never leaves (runbook 110) |
+| ⛔ too big for 12 GB | `qwen3-coder-next` (52 GB), `qwen3.5:27b` coding tags | - | - |
+| Local, CODING (122w) | **`qwen3-coder:30b`** (19 GB MoE, only **3.3B active**, tools, 256K) as `coder-dev` | the latest Qwen coding model that runs here: like Muse it does NOT fit 12 GB and runs split, but 3.3B active parameters keep it fast. *Revised 27 Sep - it was listed "too big" by size alone; for a MoE the active size decides speed.* `ojas claude --local` measures it | a brain lane (100%-GPU rule) |
+| Cloud, FREE, via the Service Hub | **Kimi K3** (was K2.6; K2.6 withdrawn, 122f) from `nvidia_nim` - the best UI/design model we reach | `ojas ui "…"` (= `ojas route --class PUBLIC --cap design`) for layout/UX; `--cap coding` for snippets | vault text or company data - LOCAL_ONLY never leaves (runbook 110) |
+
+**Driving the build locally (owner, 27 Sep - 122w):** `ojas claude --local` picks
+**Muse first**; if it cannot reach `OJAS_MIN_TPS` (default 8 tokens/s) on a short
+probe it hands over to `coder-dev`, then `qwen3.5-dev` - and says which and why.
+Every session lands in the `repo:local-dev` cabinet and in `ojas devlog`, the
+ledger of which model built what.
 
 **Binding a model to this project** uses the dev agent's own tool (no new tool):
 `python3 ~/.claude/tools/model_setup.py --probe` (what Ollama really serves), then
@@ -238,6 +285,23 @@ cloud coding model (Kimi / GLM through the Ollama API). Both are fine, in this o
 **Pasting deck code that contains company data or vault text into it is not**
 (RUNBOOK_07 START.MODELS, runbook 110).
 
+### UI libraries approved for the Command Center (27 Sep 2026 - 122w)
+
+Owner: *"include other UI JS as well along with three.js"*. Approved, **installed
+by the agent only when a slice uses one** (unused deps are weight and attack
+surface), always from npm into `dist/`, never a CDN `<script>`:
+
+| need | library | why this one |
+|---|---|---|
+| motion, transitions | `motion` (the Framer Motion successor) | React-native API, respects `prefers-reduced-motion` |
+| timelines, scroll, SVG | `gsap` + `@gsap/react` | industry standard; all plugins free since 2025 |
+| icons | `lucide-react` | tree-shaken - only used icons ship |
+| charts (panels) | `recharts` | React components, SVG, enough for 6 panels |
+| accessible primitives | shadcn/ui (`npx shadcn@latest init`) | copies Radix-based components INTO the repo - no runtime dependency to go stale |
+| 3D | `three` + `@react-three/fiber` + `@react-three/drei` | decided above |
+
+Other stacks and their equivalents: RUNBOOK_07 START.STACKS.
+
 📌 **`<script src="https://cdn.tailwindcss.com">` is the one genuine "never".**
 That build compiles Tailwind **in the browser on every load** — Tailwind's own
 docs say not to ship it. `npm i -D tailwindcss` is the shipped path.
@@ -328,7 +392,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 384 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 423 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
@@ -707,7 +771,7 @@ and needs a named action list, a role check and an audit line **before** it runs
 
 ```
 /project                     # first visit: adopt the folder
-/start-story                 # then: "implement docs/phase-1.md section 5.3"
+/start-story                 # then: "implement the NEXT slice in docs/phase-1.md §0" (130)
 ```
 
 Four sentences that keep it on the rails:
