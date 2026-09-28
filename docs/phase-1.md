@@ -27,6 +27,13 @@ return visit, work out where it stopped.
 /start-story implement the NEXT slice in docs/phase-1.md §0 - read §0 and the section it names, nothing else
 ```
 
+**Use `/start-story`, not `/analyze`** - `/analyze` is read-only by design and will not
+build anything. **Every UI slice follows the reference HTML** (§5.7) for layout, spacing
+and tokens - "looks roughly like it" is not done.
+**First run in the repo** (the agent's REPO-MAP / base analysis): do it ONCE with
+`claude` on your plan - `/analyze build the base analysis and repo map` - the full
+protocol needs a large model; local models then work slice by slice on top of it.
+
 The NEXT slice is the first row below that is not ✅. When it is done the agent
 (1) runs its PROOF command, (2) commits on a branch, (3) changes that row to
 `✅ <date> <short commit hash>` **in this file inside the project**, and stops.
@@ -40,6 +47,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ⏳ 28 Sep: build ✅ + 1 test ✅ on `try/l0` (coder-dev) - but the changes were NEVER COMMITTED, and the config must be checked for `base` + proxy before it merges | `npm run build && npx vitest run` + `grep -E "console|proxy|tailwind" vite.config.ts` |
 | 3 | `src/api.ts` - the `Panel<T>` wrapper + tests for 401 / 403 / 501 | §5.3 | ⬜ | `npx vitest run` |
 | 4 | panel shell + a `NotBuilt` component that shows `why` (never `[]`) + test | §6 | ⬜ | `npx vitest run` |
+| 4b | **design fidelity**: port the REFERENCE layout from `Vyom Command Deck.dc.html` (§5.7) - its grid, spacing, colour + font tokens and component structure, read as SOURCE (the markup/CSS), not from a screenshot | §5.7 | ⬜ | side-by-side screenshots of the reference and the app at 1280 px AND 1920 px; tokens asserted in a test |
 | 5 | the six panels - ONE PANEL PER STORY, each from its real endpoint | §2, §6 | ⬜ 0/6 | a render test per panel incl. NOT BUILT |
 | 6 | ask box → `/vyom/ask`, sources under the answer | §6 | ⬜ | test + a real question in `npm run dev` |
 | 7 | tiles from `/vyom/me` `options` + show `config_problem` | §6 | ⬜ | test |
@@ -47,6 +55,8 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 9 | its own app window at logon | §5.6 | ⬜ | `vyom_deck_app.ps1 -Status` both OK |
 | 10 | three.js background (Phase 1b, after the panels) | §3 3D | ⬜ | renders; RDP not stuttering |
 | 11 | founder vs COO/CTO tiles PROVEN by logging in as each | §6 | ⬜ | two logins, two screenshots |
+| 12 | **self-check panel**: Vyom's own health + "what you owe" (reviews, packets, open steps) - the same facts as `ojas selfcheck` | needs a `/vyom/selfcheck` endpoint first (backend story) | ⬜ | panel shows NOT BUILT until the endpoint exists; then a render test |
+| 13 | **conversational ask box**: follows the previous turn (like the `ojas` loop), and answers from a TOOL (self-check, weather) are labelled as such | §6 | ⬜ | test: second question sends the previous turn |
 
 **Who drives which slice** (runbook 130): `ojas claude --local` = the LOCAL team
 (Muse plans in Plan Mode, qwen3-coder builds, qwen3.5 small tasks) - good for
@@ -423,7 +433,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 428 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 434 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
