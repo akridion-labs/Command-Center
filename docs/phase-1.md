@@ -53,7 +53,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 7 | tiles from `/vyom/me` `options` + show `config_problem`; tests in `src/tiles/` | §6 | ✅ 2026-09-29 157f4a2 (coder-dev) | `npx vitest run src/tiles` |
 | 8 | build, `ojas assets`, serve at `/console/`, zero CSP errors | §5.4-5.5 | 👀 2026-09-29 4cf1e7e (coder-dev) - review: DevTools at :8765/console/ shows zero CSP errors | `ojas assets ~/Projects/command-center/dist` + `curl -fsS -o /dev/null http://127.0.0.1:8765/console/` 👀 DevTools at :8765/console/ shows zero CSP errors |
 | 9 | its own app window at logon | §5.6 | ⬜ | `vyom_deck_app.ps1 -Status` both OK |
-| 10 | three.js background ☁ (Phase 1b, after the panels) | §3 3D | ⬜ | `npm run build` 👀 renders; RDP not stuttering |
+| 10 | three.js background ☁ (Phase 1b, after the panels) | §3 3D | 👀 2026-09-29 1526164 (claude-plan) - review: renders; RDP not stuttering | `npm run build` 👀 renders; RDP not stuttering |
 | 11 | founder vs COO/CTO tiles PROVEN by logging in as each | §6 | ⬜ | two logins, two screenshots |
 | 12 | **self-check panel**: Vyom's own health + "what you owe" (reviews, packets, open steps) - the same facts as `ojas selfcheck`; test in `src/panels/SelfCheck.test.tsx` | needs a `/vyom/selfcheck` endpoint first (backend story) | ⬜ | `npx vitest run src/panels/SelfCheck` 👀 shows NOT BUILT until the endpoint exists |
 | 13 | **conversational ask box**: follows the previous turn (like the `ojas` loop), and answers from a TOOL (self-check, weather) are labelled as such; tests in `src/ask/` | §6 | ⬜ | `npx vitest run src/ask` |
