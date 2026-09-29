@@ -51,7 +51,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 5 | the six panels ☁ - ONE PANEL PER STORY, each from its real endpoint, one render test per panel in `src/panels/` incl. NOT BUILT | §2, §6 | 👀 2026-09-29 e598020 (claude-plan) - review: `npm run dev`: six panels, every NOT BUILT one shows its why | `npx vitest run src/panels` 👀 `npm run dev`: six panels, every NOT BUILT one shows its why |
 | 6 | ask box → `/vyom/ask`, sources under the answer; tests in `src/ask/` | §6 | 👀 2026-09-29 f96c6a1 (coder-dev) - review: a real question in `npm run dev` shows its sources | `npx vitest run src/ask` 👀 a real question in `npm run dev` shows its sources |
 | 7 | tiles from `/vyom/me` `options` + show `config_problem`; tests in `src/tiles/` | §6 | ✅ 2026-09-29 157f4a2 (coder-dev) | `npx vitest run src/tiles` |
-| 8 | ⚙ build, `ojas assets`, serve at `/console/`, zero CSP errors (an operations step: the runner ships, no agent edits) | §5.4-5.5 | ⬜ reopened: ship it - the proof is now ojas ship-console | `ojas ship-console ~/Projects/command-center` 👀 DevTools at :8765/console/ shows zero CSP errors |
+| 8 | ⚙ build, `ojas assets`, serve at `/console/`, zero CSP errors (an operations step: the runner ships, no agent edits) | §5.4-5.5 | 👀 2026-09-29 98636be (runner) - review: DevTools at :8765/console/ shows zero CSP errors | `ojas ship-console ~/Projects/command-center` 👀 DevTools at :8765/console/ shows zero CSP errors |
 | 9 | its own app window at logon | §5.6 | ⬜ | `vyom_deck_app.ps1 -Status` both OK |
 | 10 | three.js background ☁ (Phase 1b, after the panels) | §3 3D | ⬜ | `npm run build` 👀 renders; RDP not stuttering |
 | 11 | founder vs COO/CTO tiles PROVEN by logging in as each | §6 | ⬜ | two logins, two screenshots |
