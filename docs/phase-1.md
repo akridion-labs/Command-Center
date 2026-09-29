@@ -64,6 +64,15 @@ slices 2-4 and 6-8; `claude` on your plan for design-heavy ones (5, 10). Pin a
 model for a project with `echo coder-dev > .ojas-model`. After every session:
 `ojas agent-check` (did the agent follow its own loop, which model did the work).
 
+**Slices run back to back - `ojas build` (134).** You no longer type a command per
+slice. `ojas build --max 3` takes the first row above that is not ✅, gives the agent
+ONLY that row and the section it names (a fresh, small session - no long chat to fill
+up), then **runs the PROOF itself**, commits, ticks the row and merges into `main` - and
+goes on to the next. It stops, and says why, when a proof fails (the branch is left for
+you) or when a proof needs a person (screenshots, a login). The model's own "verified"
+counts for nothing: on 29 Sep coder-dev declared slice 2 "implemented and verified"
+without running a single command. Already built by hand? `ojas build --accept`.
+
 **When a slice is done - the brain completes its context (131):** tick the row, commit,
 then `ojas publish` - it refreshes the thinking digest, the docs, the vault, this repo,
 the agent's lessons and every conversation, proves the brain has the newest rows, and
@@ -433,7 +442,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 434 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 459 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
