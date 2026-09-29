@@ -79,3 +79,31 @@ describe('get function', () => {
     await expect(get('/api/test')).rejects.toThrow('HTTP 500')
   })
 })
+
+describe('Panel type behavior', () => {
+  it('should properly handle built panels', async () => {
+    const testData = { value: 'test data' }
+    mockFetch.mockResolvedValueOnce({
+      status: 200,
+      ok: true,
+      json: async () => testData
+    })
+
+    const result = await get<{value: string}>('/api/test')
+
+    expect(result.built).toBe(true)
+    expect(result.value).toBe('test data')
+  })
+
+  it('should properly handle not built panels', async () => {
+    mockFetch.mockResolvedValueOnce({
+      status: 403,
+      ok: false
+    })
+
+    const result = await get<{value: string}>('/api/test')
+
+    expect(result.built).toBe(false)
+    expect(result.why).toBe('not permitted for your role')
+  })
+})
