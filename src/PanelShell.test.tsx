@@ -4,12 +4,12 @@ import { PanelShell } from './PanelShell';
 import { NotBuilt } from './NotBuilt';
 
 describe('PanelShell', () => {
-  it('renders title correctly', () => {
-    const panel = { built: true as const, value: 'test' };
+  it('renders title correctly when panel is built', () => {
+    const panel = { built: true as const };
 
     const { getByText } = render(
       <PanelShell panel={panel} title="Test Panel">
-        <p>Panel content</p>
+        {() => <p>Panel content</p>}
       </PanelShell>
     );
 

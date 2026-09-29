@@ -1,20 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { get, type Panel } from '../api'
+import { PanelShell } from '../PanelShell'
 import { NotBuilt } from '../NotBuilt'
 
 type Row = Record<string, unknown>
 const txt = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : JSON.stringify(v))
 const list = (v: unknown): Row[] => (Array.isArray(v) ? (v as Row[]) : [])
-
-function Frame({ title, panel, children }: { title: string; panel: Panel<unknown> | null; children: (p: never) => ReactNode }) {
-  return (
-    <section className="card sp2" aria-label={title}>
-      <div className="card-title">{title}</div>
-      {panel === null ? <div className="card-note">loading…</div>
-        : panel.built ? children(panel as never) : <NotBuilt panel={panel} />}
-    </section>
-  )
-}
 
 function Items({ rows, empty }: { rows: Row[]; empty: string }) {
   if (!rows.length) return <div className="card-note">{empty}</div>
@@ -23,7 +14,7 @@ function Items({ rows, empty }: { rows: Row[]; empty: string }) {
 
 export function HealthPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
-    <Frame title="Health" panel={panel}>
+    <PanelShell title="Health" panel={panel}>
       {(p: Row) => (
         <>
           {p.model !== undefined && <div className="card-value mono">{txt(p.model)}</div>}
@@ -32,13 +23,13 @@ export function HealthPanel({ panel }: { panel: Panel<Row> | null }) {
           <Items rows={list(p.attention)} empty="no attention items" />
         </>
       )}
-    </Frame>
+    </PanelShell>
   )
 }
 
 export function TasksPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
-    <Frame title="Tasks" panel={panel}>
+    <PanelShell title="Tasks" panel={panel}>
       {(p: Row) => (
         <>
           {(['jobs', 'packets', 'deferred'] as const).map((k) => (
@@ -46,21 +37,21 @@ export function TasksPanel({ panel }: { panel: Panel<Row> | null }) {
           ))}
         </>
       )}
-    </Frame>
+    </PanelShell>
   )
 }
 
 export function AgentsPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
-    <Frame title="Agents" panel={panel}>
+    <PanelShell title="Agents" panel={panel}>
       {(p: Row) => <Items rows={list(p.agents)} empty="no agents in ~/.claude/agents" />}
-    </Frame>
+    </PanelShell>
   )
 }
 
 export function QuotaPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
-    <Frame title="Quota" panel={panel}>
+    <PanelShell title="Quota" panel={panel}>
       {(p: Row) => {
         const storage = (p.storage ?? {}) as Row
         const usage = (p.usage ?? {}) as Row
@@ -75,29 +66,29 @@ export function QuotaPanel({ panel }: { panel: Panel<Row> | null }) {
           </>
         )
       }}
-    </Frame>
+    </PanelShell>
   )
 }
 
 export function ContainersPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
-    <Frame title="Containers" panel={panel}>
+    <PanelShell title="Containers" panel={panel}>
       {(p: Row) => <Items rows={list(p.containers)} empty="no containers reported" />}
-    </Frame>
+    </PanelShell>
   )
 }
 
 export function ActionsPanel() {
   return (
-    <Frame title="Actions" panel={{ built: false, why: 'POST /vyom/act refuses everything (501) until each action is named, role-checked and audited' }}>
+    <PanelShell title="Actions" panel={{ built: false, why: 'POST /vyom/act refuses everything (501) until each action is named, role-checked and audited' }}>
       {() => null}
-    </Frame>
+    </PanelShell>
   )
 }
 
 export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
-    <Frame title="Self-Check" panel={panel}>
+    <PanelShell title="Self-Check" panel={panel}>
       {(p: Row) => (
         <>
           {p.own_health !== undefined && (
@@ -128,7 +119,7 @@ export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
           )}
         </>
       )}
-    </Frame>
+    </PanelShell>
   )
 }
 
