@@ -2,7 +2,13 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { get, type Panel } from './api'
 import { NotBuilt } from './NotBuilt'
 import { Panels } from './panels/Panels'
+import { AskBox } from './ask/AskBox'
 import './design/deck.css'
+
+interface MeResponse {
+  options?: Record<string, unknown>
+  config_problem?: string
+}
 
 interface Health { model?: string; vault?: { total_chunks?: number } }
 interface Quota { storage?: { size?: string; chunks?: number; index_age?: string }; usage?: { built?: boolean; why?: string } }
@@ -41,11 +47,19 @@ function Gauge({ label, unit }: { label: string; unit: string }) {
 export function Deck() {
   const [health, setHealth] = useState<Panel<Health> | null>(null)
   const [quota, setQuota] = useState<Panel<Quota> | null>(null)
+  const [me, setMe] = useState<MeResponse | null>(null)
   const [range, setRange] = useState('24h')
 
   useEffect(() => {
     get<Health>('/vyom/health').then(setHealth).catch(() => setHealth({ built: false, why: 'health unreachable' }))
     get<Quota>('/vyom/quota').then(setQuota).catch(() => setQuota({ built: false, why: 'quota unreachable' }))
+    get<MeResponse>('/vyom/me').then((response) => {
+      if (response.built) {
+        setMe(response)
+      } else {
+        setMe(null)
+      }
+    }).catch(() => setMe(null))
   }, [])
 
   const model = health?.built ? health.model : undefined
@@ -119,6 +133,24 @@ export function Deck() {
             <NotBuilt panel={ABSENT('ask.py does not log duration yet')} />
           </Card>
         </div>
+
+        <div className="cd-grid">
+          <div className="sp4 section-label" id="sec-ask">Ask Vyom</div>
+          <AskBox />
+        </div>
+
+        {me?.config_problem && (
+          <div className="cd-grid">
+            <div className="sp4 section-label" id="sec-config">Configuration Problem</div>
+            <div className="card sp2" aria-label="Config Problem">
+              <div className="card-title">Config Problem</div>
+              <div className="card-note" style={{ color: '#ff4b33' }}>
+                {me.config_problem}
+              </div>
+            </div>
+          </div>
+        )}
+
         <Panels />
       </div>
     </>
