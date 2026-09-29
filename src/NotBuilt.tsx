@@ -1,4 +1,4 @@
-import { Panel } from './api';
+import type { Panel } from './api';
 
 interface NotBuiltProps {
   panel: Panel<unknown>;

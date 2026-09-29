@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { Panel } from './api';
+import type { ReactNode } from 'react';
+import type { Panel } from './api';
 
 export interface PanelProps<T> {
   panel: Panel<T>;
@@ -7,7 +7,7 @@ export interface PanelProps<T> {
   children?: ReactNode;
 }
 
-export function PanelShell<T>({ panel, title, children }: PanelProps<T>) {
+export function PanelShell<T>({ title, children }: PanelProps<T>) {
   return (
     <div className="panel">
       <h2>{title}</h2>

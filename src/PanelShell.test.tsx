@@ -5,7 +5,7 @@ import { NotBuilt } from './NotBuilt';
 
 describe('PanelShell', () => {
   it('renders title correctly', () => {
-    const panel = { built: true, value: 'test' };
+    const panel = { built: true as const, value: 'test' };
 
     const { getByText } = render(
       <PanelShell panel={panel} title="Test Panel">
@@ -21,7 +21,7 @@ describe('PanelShell', () => {
 describe('NotBuilt', () => {
   it('renders NOT BUILT and why message', () => {
     const panel = {
-      built: false,
+      built: false as const,
       why: 'not implemented yet'
     };
 

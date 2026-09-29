@@ -42,7 +42,7 @@ describe('get function', () => {
     try {
       await get('/api/test')
       expect.fail('Expected an error to be thrown')
-    } catch (error) {
+    } catch (error: any) {
       expect(error.message).toBe('login')
       expect(mockLocation.href).toBe('/vyom/login')
     }
@@ -92,6 +92,7 @@ describe('Panel type behavior', () => {
     const result = await get<{value: string}>('/api/test')
 
     expect(result.built).toBe(true)
+    // @ts-expect-error - panel.value only exists when built is true
     expect(result.value).toBe('test data')
   })
 
@@ -104,6 +105,7 @@ describe('Panel type behavior', () => {
     const result = await get<{value: string}>('/api/test')
 
     expect(result.built).toBe(false)
+    // @ts-expect-error - panel.why only exists when built is false
     expect(result.why).toBe('not permitted for your role')
   })
 })

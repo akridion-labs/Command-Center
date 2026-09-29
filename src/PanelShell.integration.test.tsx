@@ -1,7 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
-import { PanelShell } from './PanelShell';
-import { NotBuilt } from './NotBuilt';
 import { get } from './api';
 
 // Mock the global fetch function
@@ -24,6 +21,7 @@ describe('PanelShell with NotBuilt integration', () => {
     const panel = await get('/api/test');
 
     expect(panel.built).toBe(false);
+    // @ts-expect-error - panel.why only exists when built is false
     expect(panel.why).toBe('not permitted for your role');
   });
 
@@ -38,6 +36,7 @@ describe('PanelShell with NotBuilt integration', () => {
     const panel = await get('/api/test');
 
     expect(panel.built).toBe(true);
+    // @ts-expect-error - panel.value only exists when built is true
     expect(panel.value).toBe('test data');
   });
 });
