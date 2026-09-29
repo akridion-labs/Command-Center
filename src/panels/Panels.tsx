@@ -95,6 +95,43 @@ export function ActionsPanel() {
   )
 }
 
+export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
+  return (
+    <Frame title="Self-Check" panel={panel}>
+      {(p: Row) => (
+        <>
+          {p.own_health !== undefined && (
+            <div className="card-note">
+              Own health: {txt(p.own_health)}
+            </div>
+          )}
+          {p.owe !== undefined && (
+            <div className="eyebrow">What you owe</div>
+          )}
+          {p.reviews !== undefined && (
+            <div className="card-note">
+              Reviews: {txt(p.reviews)}
+            </div>
+          )}
+          {p.packets !== undefined && (
+            <div className="card-note">
+              Packets: {txt(p.packets)}
+            </div>
+          )}
+          {p.open_steps !== undefined && (
+            <div className="card-note">
+              Open steps: {txt(p.open_steps)}
+            </div>
+          )}
+          {p.attention !== undefined && (
+            <Items rows={list(p.attention)} empty="no attention items" />
+          )}
+        </>
+      )}
+    </Frame>
+  )
+}
+
 function useEndpoint(path: string): Panel<Row> | null {
   const [panel, setPanel] = useState<Panel<Row> | null>(null)
   useEffect(() => {
@@ -114,6 +151,7 @@ export function Panels() {
       <QuotaPanel panel={useEndpoint('/vyom/quota')} />
       <ContainersPanel panel={useEndpoint('/vyom/containers')} />
       <ActionsPanel />
+      <SelfCheckPanel panel={useEndpoint('/vyom/selfcheck')} />
     </div>
   )
 }
