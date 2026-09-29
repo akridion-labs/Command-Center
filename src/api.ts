@@ -9,5 +9,6 @@ export async function get<T>(path: string): Promise<Panel<T>> {
   if (r.status === 501) return { built: false, why: 'not implemented yet' }
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   const data = await r.json()
+  if (data && data.built === false) return { built: false, why: data.why ?? 'not built', unblocked_by: data.unblocked_by }
   return { ...data, built: true }
 }

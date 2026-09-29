@@ -1,0 +1,119 @@
+import { useEffect, useState, type ReactNode } from 'react'
+import { get, type Panel } from '../api'
+import { NotBuilt } from '../NotBuilt'
+
+type Row = Record<string, unknown>
+const txt = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : JSON.stringify(v))
+const list = (v: unknown): Row[] => (Array.isArray(v) ? (v as Row[]) : [])
+
+function Frame({ title, panel, children }: { title: string; panel: Panel<unknown> | null; children: (p: never) => ReactNode }) {
+  return (
+    <section className="card sp2" aria-label={title}>
+      <div className="card-title">{title}</div>
+      {panel === null ? <div className="card-note">loading…</div>
+        : panel.built ? children(panel as never) : <NotBuilt panel={panel} />}
+    </section>
+  )
+}
+
+function Items({ rows, empty }: { rows: Row[]; empty: string }) {
+  if (!rows.length) return <div className="card-note">{empty}</div>
+  return <ul>{rows.map((r, i) => <li key={i}>{txt(r.name ?? r.title ?? r.id ?? r.label ?? r)}{r.status ? ` — ${txt(r.status)}` : ''}</li>)}</ul>
+}
+
+export function HealthPanel({ panel }: { panel: Panel<Row> | null }) {
+  return (
+    <Frame title="Health" panel={panel}>
+      {(p: Row) => (
+        <>
+          {p.model !== undefined && <div className="card-value mono">{txt(p.model)}</div>}
+          {p.index_freshness !== undefined && <div className="card-note">index {txt(p.index_freshness)}</div>}
+          {p.answer_quality !== undefined && <div className="card-note">quality {txt(p.answer_quality)}</div>}
+          <Items rows={list(p.attention)} empty="no attention items" />
+        </>
+      )}
+    </Frame>
+  )
+}
+
+export function TasksPanel({ panel }: { panel: Panel<Row> | null }) {
+  return (
+    <Frame title="Tasks" panel={panel}>
+      {(p: Row) => (
+        <>
+          {(['jobs', 'packets', 'deferred'] as const).map((k) => (
+            <div key={k}><div className="eyebrow">{k}</div><Items rows={list(p[k])} empty={`no ${k}`} /></div>
+          ))}
+        </>
+      )}
+    </Frame>
+  )
+}
+
+export function AgentsPanel({ panel }: { panel: Panel<Row> | null }) {
+  return (
+    <Frame title="Agents" panel={panel}>
+      {(p: Row) => <Items rows={list(p.agents)} empty="no agents in ~/.claude/agents" />}
+    </Frame>
+  )
+}
+
+export function QuotaPanel({ panel }: { panel: Panel<Row> | null }) {
+  return (
+    <Frame title="Quota" panel={panel}>
+      {(p: Row) => {
+        const storage = (p.storage ?? {}) as Row
+        const usage = (p.usage ?? {}) as Row
+        return (
+          <>
+            <div className="eyebrow">Storage</div>
+            <div className="card-value">{storage.size !== undefined ? txt(storage.size) : '-'}</div>
+            <div className="eyebrow">Usage</div>
+            {usage.built === false
+              ? <NotBuilt panel={{ built: false, why: txt(usage.why ?? 'usage is not built') }} />
+              : <div className="card-value">{txt(usage.value ?? usage.used ?? '-')}</div>}
+          </>
+        )
+      }}
+    </Frame>
+  )
+}
+
+export function ContainersPanel({ panel }: { panel: Panel<Row> | null }) {
+  return (
+    <Frame title="Containers" panel={panel}>
+      {(p: Row) => <Items rows={list(p.containers)} empty="no containers reported" />}
+    </Frame>
+  )
+}
+
+export function ActionsPanel() {
+  return (
+    <Frame title="Actions" panel={{ built: false, why: 'POST /vyom/act refuses everything (501) until each action is named, role-checked and audited' }}>
+      {() => null}
+    </Frame>
+  )
+}
+
+function useEndpoint(path: string): Panel<Row> | null {
+  const [panel, setPanel] = useState<Panel<Row> | null>(null)
+  useEffect(() => {
+    let live = true
+    get<Row>(path).then((p) => live && setPanel(p)).catch(() => live && setPanel({ built: false, why: `${path} unreachable` }))
+    return () => { live = false }
+  }, [path])
+  return panel
+}
+
+export function Panels() {
+  return (
+    <div className="cd-grid" id="sec-panels">
+      <HealthPanel panel={useEndpoint('/vyom/health')} />
+      <TasksPanel panel={useEndpoint('/vyom/tasks')} />
+      <AgentsPanel panel={useEndpoint('/vyom/agents')} />
+      <QuotaPanel panel={useEndpoint('/vyom/quota')} />
+      <ContainersPanel panel={useEndpoint('/vyom/containers')} />
+      <ActionsPanel />
+    </div>
+  )
+}

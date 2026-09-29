@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { get, type Panel } from './api'
 import { NotBuilt } from './NotBuilt'
+import { Panels } from './panels/Panels'
 import './design/deck.css'
 
 interface Health { model?: string; vault?: { total_chunks?: number } }
@@ -118,6 +119,7 @@ export function Deck() {
             <NotBuilt panel={ABSENT('ask.py does not log duration yet')} />
           </Card>
         </div>
+        <Panels />
       </div>
     </>
   )
