@@ -55,7 +55,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 9 | its own app window at logon | §5.6 | ⬜ | `vyom_deck_app.ps1 -Status` both OK |
 | 10 | three.js background ☁ (Phase 1b, after the panels) | §3 3D | 👀 2026-09-29 1526164 (claude-plan) - review: renders; RDP not stuttering | `npm run build` 👀 renders; RDP not stuttering |
 | 11 | founder vs COO/CTO tiles PROVEN by logging in as each | §6 | ⬜ | two logins, two screenshots |
-| 12 | **self-check panel**: Vyom's own health + "what you owe" (reviews, packets, open steps) - the same facts as `ojas selfcheck`; test in `src/panels/SelfCheck.test.tsx` | needs a `/vyom/selfcheck` endpoint first (backend story) | ⬜ | `npx vitest run src/panels/SelfCheck` 👀 shows NOT BUILT until the endpoint exists |
+| 12 | **self-check panel**: Vyom's own health + "what you owe" (reviews, packets, open steps) - the same facts as `ojas selfcheck`; test in `src/panels/SelfCheck.test.tsx` | needs a `/vyom/selfcheck` endpoint first (backend story) | 👀 2026-09-29 3f189e8 (coder-dev) - review: shows NOT BUILT until the endpoint exists | `npx vitest run src/panels/SelfCheck` 👀 shows NOT BUILT until the endpoint exists |
 | 13 | **conversational ask box**: follows the previous turn (like the `ojas` loop), and answers from a TOOL (self-check, weather) are labelled as such; tests in `src/ask/` | §6 | ⬜ | `npx vitest run src/ask` |
 
 **☁ and 👀 in the table (140).** ☁ in a slice = design-heavy: `ojas build` runs that one
