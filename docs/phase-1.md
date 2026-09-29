@@ -44,7 +44,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | # | slice | read | status | PROOF - the command that must pass |
 |---|---|---|---|---|
 | 1 | scaffold: Vite react-ts, deps, brief, logo, agent picker, README | §5.1 | ✅ 26-27 Sep (main) | `git log --oneline` shows it |
-| 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ⏳ 28 Sep: build ✅ + 1 test ✅ on `try/l0` (coder-dev) - but the changes were NEVER COMMITTED, and the config must be checked for `base` + proxy before it merges | `npm run build && npx vitest run` + `grep -E "console|proxy|tailwind" vite.config.ts` |
+| 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ✅ 2026-09-29 b824005 (coder-dev) | `npm run build && npx vitest run` + `grep -E "console|proxy|tailwind" vite.config.ts` |
 | 3 | `src/api.ts` - the `Panel<T>` wrapper + tests for 401 / 403 / 501 | §5.3 | ⬜ | `npx vitest run` |
 | 4 | panel shell + a `NotBuilt` component that shows `why` (never `[]`) + test | §6 | ⬜ | `npx vitest run` |
 | 4b | **design fidelity**: port the REFERENCE layout from `Vyom Command Deck.dc.html` (§5.7) - its grid, spacing, colour + font tokens and component structure, read as SOURCE (the markup/CSS), not from a screenshot | §5.7 | ⬜ | side-by-side screenshots of the reference and the app at 1280 px AND 1920 px; tokens asserted in a test |
