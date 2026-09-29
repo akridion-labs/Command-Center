@@ -3,9 +3,8 @@ import { render } from '@testing-library/react'
 import App from './App'
 
 describe('App', () => {
-  it('renders without crashing', () => {
+  it('renders the command deck', () => {
     const { getByText } = render(<App />)
-    // The app should render at least some content
-    expect(getByText(/Get started/i)).toBeTruthy()
+    expect(getByText(/COMMAND DECK/i)).toBeTruthy()
   })
 })
