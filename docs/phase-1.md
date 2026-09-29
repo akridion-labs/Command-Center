@@ -51,7 +51,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 5 | the six panels ☁ - ONE PANEL PER STORY, each from its real endpoint, one render test per panel in `src/panels/` incl. NOT BUILT | §2, §6 | 👀 2026-09-29 e598020 (claude-plan) - review: `npm run dev`: six panels, every NOT BUILT one shows its why | `npx vitest run src/panels` 👀 `npm run dev`: six panels, every NOT BUILT one shows its why |
 | 6 | ask box → `/vyom/ask`, sources under the answer; tests in `src/ask/` | §6 | 👀 2026-09-29 f96c6a1 (coder-dev) - review: a real question in `npm run dev` shows its sources | `npx vitest run src/ask` 👀 a real question in `npm run dev` shows its sources |
 | 7 | tiles from `/vyom/me` `options` + show `config_problem`; tests in `src/tiles/` | §6 | ✅ 2026-09-29 157f4a2 (coder-dev) | `npx vitest run src/tiles` |
-| 8 | build, `ojas assets`, serve at `/console/`, zero CSP errors | §5.4-5.5 | ⬜ reopened: ship it - the proof is now ojas ship-console | `ojas ship-console ~/Projects/command-center` 👀 DevTools at :8765/console/ shows zero CSP errors |
+| 8 | ⚙ build, `ojas assets`, serve at `/console/`, zero CSP errors (an operations step: the runner ships, no agent edits) | §5.4-5.5 | ⬜ reopened: ship it - the proof is now ojas ship-console | `ojas ship-console ~/Projects/command-center` 👀 DevTools at :8765/console/ shows zero CSP errors |
 | 9 | its own app window at logon | §5.6 | ⬜ | `vyom_deck_app.ps1 -Status` both OK |
 | 10 | three.js background ☁ (Phase 1b, after the panels) | §3 3D | ⬜ | `npm run build` 👀 renders; RDP not stuttering |
 | 11 | founder vs COO/CTO tiles PROVEN by logging in as each | §6 | ⬜ | two logins, two screenshots |
@@ -66,6 +66,8 @@ a PERSON must look at something (screenshots, `npm run dev`); the loop records t
 has to pass `npm run build` - vitest alone does not type-check. After the commands pass,
 the runner also reads the code (142): no `@ts-expect-error` / `any` / skipped tests, and no
 component defined twice. Proven but wrong? `ojas build --reopen <id> "what is wrong"`.
+⚙ in a slice = an operations step (shipping): the runner runs the proof itself and no agent
+touches the code. `ojas preview` shows MAIN on :5174 from a separate folder while the loop works.
 
 **Who drives which slice** (runbook 130): `ojas claude --local` = the LOCAL team
 (Muse plans in Plan Mode, qwen3-coder builds, qwen3.5 small tasks) - good for
@@ -451,7 +453,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 483 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 490 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
