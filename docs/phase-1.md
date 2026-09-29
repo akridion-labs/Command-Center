@@ -44,19 +44,26 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | # | slice | read | status | PROOF - the command that must pass |
 |---|---|---|---|---|
 | 1 | scaffold: Vite react-ts, deps, brief, logo, agent picker, README | §5.1 | ✅ 26-27 Sep (main) | `git log --oneline` shows it |
-| 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ✅ 2026-09-29 b824005 (coder-dev) | `npm run build && npx vitest run` + `grep -E "console|proxy|tailwind" vite.config.ts` |
-| 3 | `src/api.ts` - the `Panel<T>` wrapper + tests for 401 / 403 / 501 | §5.3 | ✅ 2026-09-29 44953b7 (coder-dev) | `npx vitest run` |
-| 4 | panel shell + a `NotBuilt` component that shows `why` (never `[]`) + test | §6 | ✅ 2026-09-29 7ca2500 (coder-dev) | `npx vitest run` |
-| 4b | **design fidelity**: port the REFERENCE layout from `Vyom Command Deck.dc.html` (§5.7) - its grid, spacing, colour + font tokens and component structure, read as SOURCE (the markup/CSS), not from a screenshot | §5.7 | ⬜ | side-by-side screenshots of the reference and the app at 1280 px AND 1920 px; tokens asserted in a test |
-| 5 | the six panels - ONE PANEL PER STORY, each from its real endpoint | §2, §6 | ⬜ 0/6 | a render test per panel incl. NOT BUILT |
-| 6 | ask box → `/vyom/ask`, sources under the answer | §6 | ⬜ | test + a real question in `npm run dev` |
-| 7 | tiles from `/vyom/me` `options` + show `config_problem` | §6 | ⬜ | test |
-| 8 | build, `ojas assets`, serve at `/console/`, zero CSP errors | §5.4-5.5 | ⬜ | `ojas assets ~/Projects/command-center/dist` clean + `curl … /console/` → 200 |
+| 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ✅ 29 Sep - `ojas build`, coder-dev (hash in the project copy) | `npm run build && npx vitest run` + `grep -E "console|proxy|tailwind" vite.config.ts` |
+| 3 | `src/api.ts` - the `Panel<T>` wrapper + tests for 401 / 403 / 501 | §5.3 | ✅ 29 Sep - `ojas build`, coder-dev, fixed on its own retry | `npx vitest run` |
+| 4 | panel shell + a `NotBuilt` component that shows `why` (never `[]`) + test | §6 | ✅ 29 Sep - `ojas build`, coder-dev | `npx vitest run` |
+| 4b | **design fidelity** ☁: port the REFERENCE layout from `docs/design/Vyom Command Deck.dc.html` (§5.7) - its grid, spacing, colour + font tokens and component structure, read as SOURCE (the markup/CSS), not from a screenshot; tokens asserted in `src/design/*.test.ts` | §5.7 | ⬜ | `npx vitest run src/design` 👀 side-by-side screenshots of the reference and the app at 1280 px AND 1920 px |
+| 5 | the six panels ☁ - ONE PANEL PER STORY, each from its real endpoint, one render test per panel in `src/panels/` incl. NOT BUILT | §2, §6 | ⬜ 0/6 | `npx vitest run src/panels` 👀 `npm run dev`: six panels, every NOT BUILT one shows its why |
+| 6 | ask box → `/vyom/ask`, sources under the answer; tests in `src/ask/` | §6 | ⬜ | `npx vitest run src/ask` 👀 a real question in `npm run dev` shows its sources |
+| 7 | tiles from `/vyom/me` `options` + show `config_problem`; tests in `src/tiles/` | §6 | ⬜ | `npx vitest run src/tiles` |
+| 8 | build, `ojas assets`, serve at `/console/`, zero CSP errors | §5.4-5.5 | ⬜ | `ojas assets ~/Projects/command-center/dist` + `curl -fsS -o /dev/null http://127.0.0.1:8765/console/` 👀 DevTools at :8765/console/ shows zero CSP errors |
 | 9 | its own app window at logon | §5.6 | ⬜ | `vyom_deck_app.ps1 -Status` both OK |
-| 10 | three.js background (Phase 1b, after the panels) | §3 3D | ⬜ | renders; RDP not stuttering |
+| 10 | three.js background ☁ (Phase 1b, after the panels) | §3 3D | ⬜ | `npm run build` 👀 renders; RDP not stuttering |
 | 11 | founder vs COO/CTO tiles PROVEN by logging in as each | §6 | ⬜ | two logins, two screenshots |
-| 12 | **self-check panel**: Vyom's own health + "what you owe" (reviews, packets, open steps) - the same facts as `ojas selfcheck` | needs a `/vyom/selfcheck` endpoint first (backend story) | ⬜ | panel shows NOT BUILT until the endpoint exists; then a render test |
-| 13 | **conversational ask box**: follows the previous turn (like the `ojas` loop), and answers from a TOOL (self-check, weather) are labelled as such | §6 | ⬜ | test: second question sends the previous turn |
+| 12 | **self-check panel**: Vyom's own health + "what you owe" (reviews, packets, open steps) - the same facts as `ojas selfcheck`; test in `src/panels/SelfCheck.test.tsx` | needs a `/vyom/selfcheck` endpoint first (backend story) | ⬜ | `npx vitest run src/panels/SelfCheck` 👀 shows NOT BUILT until the endpoint exists |
+| 13 | **conversational ask box**: follows the previous turn (like the `ojas` loop), and answers from a TOOL (self-check, weather) are labelled as such; tests in `src/ask/` | §6 | ⬜ | `npx vitest run src/ask` |
+
+**☁ and 👀 in the table (140).** ☁ in a slice = design-heavy: `ojas build` runs that one
+on your Claude plan, the rest on the local coder. 👀 in a PROOF = after the commands pass,
+a PERSON must look at something (screenshots, `npm run dev`); the loop records the slice as
+`👀 … review: …`, merges it and **keeps going** instead of waiting. When you have looked:
+`ojas build --review` lists them, `ojas build --approve <id>` makes it ✅. Every slice also
+has to pass `npm run build` - vitest alone does not type-check.
 
 **Who drives which slice** (runbook 130): `ojas claude --local` = the LOCAL team
 (Muse plans in Plan Mode, qwen3-coder builds, qwen3.5 small tasks) - good for
@@ -442,7 +449,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 459 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 473 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
