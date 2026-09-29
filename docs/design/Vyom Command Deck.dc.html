@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{--brand-magenta:#c65cff;--brand-cyan:#39c6ff;--brand-green:#0f4d3f}
+html{scroll-behavior:smooth}
+body{margin:0;background:#070b14;color:#e7edf5;font-family:'Rajdhani',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+a{color:#39c6ff;text-decoration:none}a:hover{color:#7cd6ff}
+::selection{background:rgba(198,92,255,.35)}
+@keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(2%,1%,0) scale(1.06)}}
+@keyframes pulse{50%{opacity:.35}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinrev{to{transform:rotate(-360deg)}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 6px rgba(255,75,51,.35))}50%{filter:drop-shadow(0 0 16px rgba(255,75,51,.7))}}
+@keyframes bootin{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes drawerin{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tipin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes scan{0%{top:-10%}100%{top:110%}}
+@keyframes shimmer{to{background-position:-200% 0}}
+.cd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sp2{grid-column:span 2}.sp4{grid-column:span 4}
+@media(min-width:1440px){.cd-grid{grid-template-columns:repeat(6,1fr)}.sp2{grid-column:span 2}.sp4{grid-column:span 6}}
+@media(max-width:980px){.cd-grid{grid-template-columns:repeat(2,1fr)}.sp2,.sp4{grid-column:span 2}}
+@media(max-width:560px){.cd-grid{grid-template-columns:1fr}.sp2,.sp4{grid-column:span 1}}
+.deck{position:relative;z-index:1;max-width:1560px;margin:0 auto;padding:20px 20px 56px}
+@media(min-width:1100px){.deck{padding-left:24px}}
+.rail{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:4px;padding:10px;border-radius:18px;background:rgba(255,255,255,.05);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08)}
+.rail a:hover{background:rgba(255,255,255,.07);color:#e7edf5}
+@media(max-width:1099px){.rail{display:none}}
+@media(min-width:1100px){.deck{padding-left:110px}}
+.stickybar{position:sticky;top:0;z-index:25;margin:0 0 12px;padding:10px 14px;border-radius:14px;background:rgba(10,16,28,.82);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+button:focus-visible,a:focus-visible{outline:2px solid #39c6ff;outline-offset:2px}
+</style>
+</helmet>
+
+<canvas data-cv="bg" style="position:fixed;inset:0;z-index:0;opacity:.45;width:100vw;height:100vh"></canvas>
+<div style="position:fixed;inset:-20%;z-index:0;pointer-events:none;background:radial-gradient(45% 45% at 18% 12%,rgba(198,92,255,.13),transparent 60%),radial-gradient(42% 42% at 85% 80%,rgba(57,198,255,.11),transparent 60%),radial-gradient(65% 60% at 50% 58%,rgba(15,77,63,.5),transparent 72%),linear-gradient(120deg,#070b14,#0a1020);animation:drift 24s ease-in-out infinite alternate"></div>
+
+<sc-if value="{{showBoot}}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:rgba(5,8,15,.88);backdrop-filter:blur(12px)">
+    <img src="uploads/logo.jpeg" alt="Akridion" width="150" height="150" style="border-radius:26px;animation:bootin 1s ease both,glow 3s ease-in-out infinite;box-shadow:0 0 60px rgba(255,75,51,.25)">
+    <div style="text-align:center">
+      <div style="font-size:26px;font-weight:700;letter-spacing:8px">AKRIDION</div>
+      <div style="font-size:12px;letter-spacing:4px;color:#8695a8;margin-top:6px">VYOM · OJAS · COMMAND DECK</div>
+    </div>
+    <button onClick="{{boot}}" style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:3px;color:#0a1020;background:linear-gradient(120deg,#c65cff,#39c6ff);border:none;border-radius:999px;padding:13px 40px;cursor:pointer" style-hover="box-shadow:0 0 28px rgba(198,92,255,.45)">INITIALIZE</button>
+    <div style="font-size:11px;color:#7f8fa3;letter-spacing:2px">AUDIO SYSTEMS ARMED · CLICK TO BOOT</div>
+  </div>
+</sc-if>
+
+<nav class="rail" aria-label="Sections">
+  <sc-for list="{{sections}}" as="s" hint-placeholder-count="7">
+    <a href="{{s.href}}" style="{{s.style}}"><span style="font-size:16px;width:20px;text-align:center">{{s.glyph}}</span>{{s.showLabel}}</a>
+  </sc-for>
+  <button onClick="{{toggleRail}}" aria-label="Toggle labels" style="all:unset;cursor:pointer;text-align:center;margin-top:4px;padding:8px;border-radius:10px;color:#7f8fa3;font-size:13px" style-hover="background:rgba(255,255,255,.07);color:#e7edf5">{{railGlyph}}</button>
+</nav>
+
+<div class="deck">
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <img src="uploads/logo.jpeg" alt="Akridion logo" width="44" height="44" style="border-radius:11px;animation:glow 3.2s ease-in-out infinite">
+      <div>
+        <h1 style="font-size:20px;margin:0;letter-spacing:5px;font-weight:700">AKRIDION <span style="color:#ff4b33">VYOM</span></h1>
+        <small style="display:block;color:#8695a8;letter-spacing:2.5px;font-size:11px;margin-top:2px">OJAS · COMMAND DECK</small>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div role="group" aria-label="Role view" style="display:inline-flex;background:rgba(255,255,255,.05);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:3px">
+        <button aria-pressed="{{ctoPressed}}" onClick="{{setCto}}" style="{{ctoBtnStyle}}">CTO</button>
+        <button aria-pressed="{{cooPressed}}" onClick="{{setCoo}}" style="{{cooBtnStyle}}">COO</button>
+      </div>
+      <span style="display:flex;align-items:center;gap:8px;color:#39d98a;font-size:13px;font-weight:600;background:rgba(255,255,255,.05);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);padding:6px 14px;border-radius:999px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#39d98a;box-shadow:0 0 8px #39d98a;animation:pulse 1.8s infinite"></span>
+        Brain online · <span data-bind="latency" style="font-family:'JetBrains Mono',monospace;font-size:12px">{{latency}} ms</span>
+      </span>
+    </div>
+  </header>
+
+  <div class="stickybar">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:14px;font-weight:700;letter-spacing:1px;padding-right:12px;margin-right:4px;border-right:1px solid rgba(255,255,255,.1)">{{roleTitle}}</span>
+      <span style="font-size:11px;letter-spacing:2px;color:#7f8fa3;text-transform:uppercase">Window</span>
+      <sc-for list="{{ranges}}" as="rg" hint-placeholder-count="4">
+        <button onClick="{{rg.onPick}}" aria-pressed="{{rg.pressed}}" style="{{rg.btnStyle}}">{{rg.label}}</button>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:#7f8fa3;font-family:'JetBrains Mono',monospace">
+        <span style="width:7px;height:7px;border-radius:50%;background:#39d98a;box-shadow:0 0 7px #39d98a;animation:pulse 1.8s infinite"></span>{{liveStamp}}
+      </span>
+      <button onClick="{{openCustomize}}" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:10px;background:rgba(198,92,255,.1);border:1px solid rgba(198,92,255,.35);color:#e7edf5;font-size:13px;font-weight:600" style-hover="background:rgba(198,92,255,.2)">⚙ Customize deck</button>
+      <button onClick="{{openPalette}}" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:10px;padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#8695a8;font-size:13px" style-hover="border-color:rgba(198,92,255,.5);color:#e7edf5">Search containers, apps, views<span style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.07);color:#7f8fa3">⌘K</span></button>
+    </div>
+  </div>
+
+  <div id="sec-top" style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px">
+    <div style="flex:2;min-width:280px;display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)">
+      <img src="uploads/logo.jpeg" alt="" aria-hidden="true" width="34" height="34" style="border-radius:9px;flex:none">
+      <div>
+        <div style="font-size:11px;letter-spacing:2px;color:#7f8fa3;text-transform:uppercase;margin-bottom:4px">Ojas brief · {{rangeLabel}}</div>
+        <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}"><div style="font-size:14.5px;line-height:1.45;max-width:640px" data-bind="brief">{{brief}}</div></sc-if>
+        <sc-if value="{{loading}}" hint-placeholder-val="{{ false }}"><span style="{{skeleton}}"></span></sc-if>
+      </div>
+    </div>
+    <div style="flex:1;min-width:200px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:14px;background:rgba(255,93,93,.06);border:1px solid rgba(255,93,93,.28);backdrop-filter:blur(12px)">
+      <div>
+        <div style="font-size:11px;letter-spacing:2px;color:#7f8fa3;text-transform:uppercase;margin-bottom:4px">Needs you now</div>
+        <div style="font-size:26px;font-weight:700;line-height:1" data-bind="alertCount">{{alertCount}} <span style="font-size:14px;color:#8695a8;font-weight:600">open</span></div>
+      </div>
+      <span style="width:12px;height:12px;border-radius:50%;background:#ff5d5d;box-shadow:0 0 12px #ff5d5d;animation:pulse 1.2s infinite"></span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+    <sc-for list="{{alerts}}" as="al" hint-placeholder-count="4">
+      <button onClick="{{al.act}}" style="{{al.cardStyle}}" style-hover="border-color:rgba(198,92,255,.55);background:rgba(16,24,38,.8)">
+        <span style="{{al.dotStyle}}"></span>
+        <span>
+          <span style="display:block;font-size:13.5px;font-weight:700;line-height:1.3">{{al.title}}</span>
+          <span style="display:block;font-size:12px;color:#8695a8;margin-top:3px;line-height:1.4">{{al.detail}}</span>
+        </span>
+      </button>
+    </sc-for>
+  </div>
+
+  <section aria-label="Core reactor" style="position:relative;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:24px;margin-bottom:16px;backdrop-filter:blur(12px)">
+    <div style="position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(57,198,255,.35),transparent);animation:scan 7s linear infinite;pointer-events:none"></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:48px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px">
+        <div style="position:relative;width:130px;height:130px">
+          <svg width="130" height="130" viewBox="0 0 130 130" role="img" aria-label="GPU VRAM gauge">
+            <circle cx="65" cy="65" r="52" stroke="rgba(255,255,255,.1)" stroke-width="8" fill="none"></circle>
+            <circle cx="65" cy="65" r="52" stroke="#39c6ff" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="{{vramOff}}" transform="rotate(-90 65 65)" style="transition:stroke-dashoffset 1s ease;filter:drop-shadow(0 0 6px rgba(57,198,255,.5))"></circle>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none">
+            <span data-bind="vram" style="font-size:26px;font-weight:700;line-height:1;color:#e7edf5">{{vram}}</span>
+            <span style="font-size:11px;color:#8695a8">/ 12 GB VRAM</span>
+          </div>
+        </div>
+        <span style="font-size:11px;letter-spacing:2px;color:#8695a8">GPU</span>
+      </div>
+      <div style="position:relative;width:250px;height:250px;display:flex;align-items:center;justify-content:center">
+        <svg width="250" height="250" viewBox="0 0 250 250" style="position:absolute;animation:spin 26s linear infinite" aria-hidden="true">
+          <circle cx="125" cy="125" r="117" stroke="rgba(198,92,255,.3)" stroke-width="1.5" fill="none" stroke-dasharray="4 10"></circle>
+          <circle cx="125" cy="125" r="117" stroke="rgba(198,92,255,.65)" stroke-width="2" fill="none" stroke-dasharray="60 675"></circle>
+        </svg>
+        <svg width="208" height="208" viewBox="0 0 208 208" style="position:absolute;animation:spinrev 18s linear infinite" aria-hidden="true">
+          <circle cx="104" cy="104" r="96" stroke="rgba(57,198,255,.28)" stroke-width="1" fill="none" stroke-dasharray="2 8"></circle>
+          <circle cx="104" cy="104" r="96" stroke="rgba(57,198,255,.6)" stroke-width="1.6" fill="none" stroke-dasharray="40 562"></circle>
+        </svg>
+        <div style="perspective:900px;width:128px;height:128px;cursor:grab" title="Drag to rotate 360°">
+          <div data-cv="logo" style="position:relative;width:128px;height:128px;transform-style:preserve-3d;will-change:transform">
+            <img src="uploads/logo.jpeg" alt="Akridion mark" width="128" height="128" draggable="false" style="position:absolute;inset:0;border-radius:24px;display:block;backface-visibility:hidden;box-shadow:0 0 44px rgba(255,75,51,.3),0 0 90px rgba(198,92,255,.18);user-select:none;pointer-events:none">
+            <img src="uploads/logo.jpeg" alt="" aria-hidden="true" width="128" height="128" draggable="false" style="position:absolute;inset:0;border-radius:24px;display:block;backface-visibility:hidden;transform:rotateY(180deg);user-select:none;pointer-events:none">
+          </div>
+        </div>
+        <div style="position:absolute;bottom:8px;font-size:10px;letter-spacing:3px;color:#8695a8">OJAS CORE · DRAG TO SPIN</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px">
+        <div style="position:relative;width:130px;height:130px">
+          <svg width="130" height="130" viewBox="0 0 130 130" role="img" aria-label="System RAM gauge">
+            <circle cx="65" cy="65" r="52" stroke="rgba(255,255,255,.1)" stroke-width="8" fill="none"></circle>
+            <circle cx="65" cy="65" r="52" stroke="#39d98a" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="{{ramOff}}" transform="rotate(-90 65 65)" style="transition:stroke-dashoffset 1s ease;filter:drop-shadow(0 0 6px rgba(57,217,138,.5))"></circle>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none">
+            <span data-bind="ram" style="font-size:26px;font-weight:700;line-height:1;color:#e7edf5">{{ram}}</span>
+            <span style="font-size:11px;color:#8695a8">/ 64 GB RAM</span>
+          </div>
+        </div>
+        <span style="font-size:11px;letter-spacing:2px;color:#8695a8">SYSTEM</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="cd-grid">
+    <div style="{{secHealth}}">
+    <div class="sp4" id="sec-health" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Infrastructure &amp; Brain Health</div>
+
+    <div style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between">Active model <span style="font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;color:#39c6ff;background:rgba(57,198,255,.1)">routing</span></div>
+      <div style="font-size:24px;font-weight:700;line-height:1.1;font-family:'JetBrains Mono',monospace" data-bind="model">ojas-coder:v1</div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:8px">
+        <span style="color:#7f8fa3;font-size:12px">{{reqs}} reqs · {{rangeLabel}}</span>
+        <svg width="86" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><path d="{{kModel.path}}" fill="none" stroke="{{kModel.color}}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path></svg>
+      </div>
+      <div style="color:#7f8fa3;font-size:12px;margin-top:6px">via local · fallback qwen3:8b</div>
+    </div>
+
+    <div style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between">Cloud quota <span style="font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;color:#ffb454;background:rgba(255,180,84,.1)">glm</span></div>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:26px;font-weight:700;line-height:1.1" data-bind="quota">{{quotaText}}</span>
+        <span style="{{kQuota.deltaStyle}}">{{kQuota.delta}}</span>
+      </div>
+      <div style="height:7px;border-radius:6px;background:#0a0f18;overflow:hidden;margin-top:10px"><i style="display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#c65cff,#39c6ff);width:{{quotaPct}}%;transition:width 1s ease"></i></div>
+      <div style="color:#7f8fa3;font-size:12px;margin-top:6px">resets in 4h · then → local floor</div>
+    </div>
+
+    <div style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Firewall / tunnel</div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+        <span style="font-size:26px;font-weight:700;line-height:1.1;color:#39d98a">Secure</span>
+        <svg width="86" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><path d="{{kFire.path}}" fill="none" stroke="{{kFire.color}}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path></svg>
+      </div>
+      <div style="color:#7f8fa3;font-size:12px;margin-top:6px">ufw active · Tailscale up · 0 blocked</div>
+    </div>
+
+    <div style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Spend (mo)</div>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:26px;font-weight:700;line-height:1.1" data-bind="spend">{{spendTxt}}</span>
+        <span style="{{kSpend.deltaStyle}}">{{kSpend.delta}}</span>
+      </div>
+      <svg width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" style="margin-top:6px" aria-hidden="true"><path d="{{kSpend.path}}" fill="none" stroke="{{kSpend.color}}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path></svg>
+      <div style="color:#7f8fa3;font-size:12px;margin-top:6px">local models · cloud within free tier</div>
+    </div>
+
+    </div>
+    <div style="{{secDeploys}}">
+    <div class="sp4" id="sec-deploys" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Stack &amp; deploys</div>
+    <div class="sp2" style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between">Container stack <span style="font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;color:#39d98a;background:rgba(57,217,138,.1)">{{upCount}} up</span></div>
+      <sc-for list="{{containers}}" as="c" hint-placeholder-count="4">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #131b28;font-size:14px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px">{{c.name}}</span>
+          <span style="{{c.tagStyle}}">{{c.status}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="sp2" style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between">Deploy · Coolify <span style="font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;color:#39c6ff;background:rgba(57,198,255,.1)">dev→staging→prod</span></div>
+      <sc-for list="{{deploys}}" as="d" hint-placeholder-count="3">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #131b28;font-size:14px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px">{{d.app}}</span>
+          <span style="color:#8695a8;font-size:12.5px">{{d.env}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="sp4" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Production containers · hover for details · click to go inside</div>
+    <div class="sp4" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(12px)">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+        <sc-for list="{{prod}}" as="p" hint-placeholder-count="6">
+          <div style="position:relative">
+            <sc-if value="{{p.hovered}}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;bottom:calc(100% + 8px);left:0;z-index:6;width:230px;background:rgba(12,18,30,.96);border:1px solid rgba(57,198,255,.35);border-radius:10px;padding:12px;font-size:12px;box-shadow:0 12px 30px rgba(0,0,0,.5);animation:tipin .15s ease;pointer-events:none">
+                <div style="font-weight:700;font-size:13px;margin-bottom:6px">{{p.app}}</div>
+                <div style="display:flex;justify-content:space-between;color:#8695a8;padding:2px 0"><span>image</span><span style="color:#e7edf5;font-family:'JetBrains Mono',monospace;font-size:10.5px">{{p.img}}</span></div>
+                <div style="display:flex;justify-content:space-between;color:#8695a8;padding:2px 0"><span>port</span><span style="color:#e7edf5;font-family:'JetBrains Mono',monospace;font-size:11px">{{p.port}}</span></div>
+                <div style="display:flex;justify-content:space-between;color:#8695a8;padding:2px 0"><span>cpu · mem</span><span style="color:#e7edf5;font-family:'JetBrains Mono',monospace;font-size:11px">{{p.cpu}} · {{p.mem}}</span></div>
+              </div>
+            </sc-if>
+            <button onClick="{{p.onOpen}}" onMouseEnter="{{p.onEnter}}" onMouseLeave="{{onLeaveProd}}" style="all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;background:linear-gradient(180deg,rgba(17,26,41,.9),rgba(10,16,28,.95));border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px" style-hover="border-color:rgba(198,92,255,.55);box-shadow:0 8px 26px rgba(198,92,255,.15);transform:translateY(-2px)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <span style="{{p.ledStyle}}"></span>
+                <span style="font-size:11px;color:#8695a8;letter-spacing:1px;text-transform:uppercase">{{p.statusLabel}}</span>
+              </div>
+              <div style="display:flex;gap:3px;margin-bottom:10px" aria-hidden="true">
+                <span style="flex:1;height:22px;border-radius:3px;background:{{p.blockColor}};opacity:.9"></span>
+                <span style="flex:1;height:22px;border-radius:3px;background:{{p.blockColor}};opacity:.55"></span>
+                <span style="flex:1;height:22px;border-radius:3px;background:{{p.blockColor}};opacity:.75"></span>
+                <span style="flex:1;height:22px;border-radius:3px;background:{{p.blockColor}};opacity:.4"></span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;color:#e7edf5">{{p.name}}</div>
+              <div style="font-size:11.5px;color:#7f8fa3;margin-top:3px">:{{p.port}} · {{p.cpu}} cpu</div>
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    </div>
+    <div style="{{secYard}}">
+    <div class="sp4" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">
+      <span id="sec-yard">Container yard · 3D — drag to orbit · hover a container · click to go inside</span>
+      <span style="display:inline-flex;background:rgba(255,255,255,.05);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:3px">
+        <button onClick="{{setYard}}" aria-pressed="{{yardPressed}}" style="{{yardBtnStyle}}">Yard</button>
+        <button onClick="{{setBrain}}" aria-pressed="{{brainPressed}}" style="{{brainBtnStyle}}">Brain</button>
+      </span>
+    </div>
+    <div class="sp4" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(12px)">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{podApps}}" as="pa" hint-placeholder-count="3">
+            <button onClick="{{pa.onPick}}" style="{{pa.btnStyle}}">{{pa.name}}</button>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#8695a8;letter-spacing:1px">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#39d98a;box-shadow:0 0 6px #39d98a"></span>PROD</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#39c6ff;box-shadow:0 0 6px #39c6ff"></span>DEV</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#ffb454;box-shadow:0 0 6px #ffb454"></span>TEST</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#ff5d5d;box-shadow:0 0 6px #ff5d5d;animation:pulse 1.2s infinite"></span>FAILING</span>
+        </div>
+      </div>
+      <div style="position:relative">
+        <canvas data-cv="pods" height="380" style="width:100%;height:380px;display:block;cursor:grab;touch-action:none"></canvas>
+        <div data-cv="podtip" style="position:absolute;display:none;z-index:5;pointer-events:none;background:rgba(12,18,30,.96);border:1px solid rgba(57,198,255,.35);border-radius:10px;padding:10px 12px;font-size:11.5px;line-height:1.6;font-family:'JetBrains Mono',monospace;color:#e7edf5;box-shadow:0 12px 30px rgba(0,0,0,.5);max-width:260px"></div>
+      </div>
+    </div>
+
+    </div>
+    <div style="{{secResearch}}">
+    <div class="sp4" id="sec-research" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Research &amp; ideas · CTO</div>
+    <div class="sp4" style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">Idea pipeline <span style="font-size:11px;color:#7f8fa3;text-transform:none;letter-spacing:0">new idea → S.11 filter → queue or park</span></div>
+      <sc-for list="{{ideas}}" as="i" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px solid #131b28">
+          <span style="font-size:14.5px;font-weight:700">{{i.name}}</span>
+          <span style="{{i.tagStyle}}">{{i.state}}</span>
+          <span style="font-size:12px;color:#7f8fa3">{{i.track}} · {{i.note}}</span>
+        </div>
+      </sc-for>
+    </div>
+    </div>
+    <div style="{{secWork}}">
+    <div class="sp4" id="sec-work" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Work · delivery · cost</div>
+
+    <div class="sp2" style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between">Task queue <span style="font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;color:#39c6ff;background:rgba(57,198,255,.1)">ledger 4.20</span></div>
+      <sc-for list="{{tasks}}" as="t" hint-placeholder-count="4">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #131b28;font-size:14px">
+          <span>{{t.name}}</span>
+          <span style="{{t.tagStyle}}">{{t.state}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">RAG vault</div>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:26px;font-weight:700;line-height:1.1" data-bind="chunks">{{chunksTxt}}</span>
+        <span style="{{kChunks.deltaStyle}}">{{kChunks.delta}}</span>
+      </div>
+      <svg width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" style="margin-top:6px" aria-hidden="true"><path d="{{kChunks.path}}" fill="none" stroke="{{kChunks.color}}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path></svg>
+      <div style="color:#7f8fa3;font-size:12px;margin-top:6px">25 cabinets · recall@5 <span style="color:#39d98a;font-weight:600">{{recallTxt}}</span></div>
+    </div>
+
+    <div style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">What's next</div>
+      <div style="font-size:17px;font-weight:700;line-height:1.25">A2 · Security / compliance service</div>
+      <div style="color:#7f8fa3;font-size:12px;margin-top:6px">Track A · unlocks when scanner ships<br>new ideas → S.11 filter → queue / park</div>
+    </div>
+
+    </div>
+    <div style="{{secProcess}}">
+    <div class="sp4" id="sec-process" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Process &amp; operating cadence · COO</div>
+    <div class="sp4" style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">This week's rhythm <span style="font-size:11px;color:#7f8fa3;text-transform:none;letter-spacing:0">shared by both brothers</span></div>
+      <sc-for list="{{cadence}}" as="c" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px solid #131b28">
+          <span style="font-size:14.5px;font-weight:700">{{c.name}}</span>
+          <span style="{{c.tagStyle}}">{{c.when}}</span>
+          <span style="font-size:12px;color:#7f8fa3">{{c.detail}}</span>
+        </div>
+      </sc-for>
+    </div>
+    </div>
+    <div style="{{secLearn}}">
+    <div class="sp4" id="sec-learn" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Learnings log · COO</div>
+    <div class="sp4" style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">What worked, what didn't</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:4px">
+        <sc-for list="{{learnings}}" as="l" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:12px;background:rgba(10,16,28,.6);border:1px solid rgba(255,255,255,.07)">
+            <span style="{{l.tagStyle}}">{{l.verdict}}</span>
+            <span style="font-size:15px;font-weight:700">{{l.title}}</span>
+            <span style="font-size:13px;color:#8695a8;line-height:1.45;text-wrap:pretty">{{l.body}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </div>
+    <div style="{{secAgents}}">
+    <div id="sec-agents" class="sp4" style="background:linear-gradient(180deg,rgba(17,26,41,.82),rgba(10,16,28,.9));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(8px)" style-hover="border-color:rgba(57,198,255,.45)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">Agent performance <span style="font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;color:#39c6ff;background:rgba(57,198,255,.1)">Paperclip org · knowledge-grounded</span></div>
+      <div style="overflow-x:auto">
+        <div style="display:grid;grid-template-columns:1.6fr .7fr .9fr 1.1fr .9fr .7fr;gap:0 12px;min-width:640px;font-size:11px;color:#8695a8;text-transform:uppercase;letter-spacing:.5px;padding:6px 0;border-bottom:1px solid #1d2736">
+          <span>Agent</span><span>Tasks</span><span>Success</span><span>RAG-grounded</span><span>Avg latency</span><span style="text-align:right">Cost</span>
+        </div>
+        <sc-for list="{{agents}}" as="a" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:1.6fr .7fr .9fr 1.1fr .9fr .7fr;gap:0 12px;min-width:640px;align-items:center;font-size:14px;padding:9px 0;border-bottom:1px solid #131b28">
+            <span style="font-weight:600">{{a.name}}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px">{{a.tasks}}</span>
+            <span><span style="{{a.successStyle}}">{{a.success}}%</span></span>
+            <span><span style="{{a.ragStyle}}">{{a.rag}}%</span></span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px">{{a.latency}}</span>
+            <span style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.5px">{{a.cost}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="color:#7f8fa3;font-size:12px;margin-top:10px">Success = task completed &amp; verified (4.20). RAG-grounded = % of answers backed by retrieved knowledge, not guessed — low grounding means re-check that agent's cabinets.</div>
+    </div>
+
+    </div>
+    <div style="{{secModels}}">
+    <div class="sp4" id="sec-models" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Model efficiency · 14-day comparison</div>
+    <div class="sp4" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(12px)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{metrics}}" as="mt" hint-placeholder-count="3">
+            <button onClick="{{mt.onPick}}" aria-pressed="{{mt.pressed}}" style="{{mt.btnStyle}}">{{mt.label}}</button>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{chartLegend}}" as="lg" hint-placeholder-count="4">
+            <button onClick="{{lg.onToggle}}" aria-pressed="{{lg.pressed}}" style="{{lg.btnStyle}}"><span style="{{lg.dotStyle}}"></span>{{lg.name}}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="position:relative">
+        <canvas data-cv="chart" style="width:100%;height:270px;display:block"></canvas>
+        <div data-cv="charttip" style="position:absolute;display:none;z-index:5;pointer-events:none;background:rgba(12,18,30,.96);border:1px solid rgba(198,92,255,.35);border-radius:10px;padding:10px 12px;font-size:11.5px;line-height:1.7;font-family:'JetBrains Mono',monospace;color:#e7edf5;box-shadow:0 12px 30px rgba(0,0,0,.5);min-width:180px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)">
+        <span style="color:#8695a8;font-size:12.5px">{{metricNote}}</span>
+        <span style="font-size:12.5px;color:#7f8fa3">Leader today · <b style="{{leaderStyle}}">{{leaderName}}</b> at {{leaderValue}}</span>
+      </div>
+    </div>
+
+    </div>
+    <div style="{{secAct}}">
+    <div class="sp4" id="sec-act" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Ojas actions · browser &amp; machine control</div>
+    <div class="sp4" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(12px)">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button onClick="{{toggleMic}}" aria-pressed="{{listening}}" aria-label="Voice input" style="{{micStyle}}">◉</button>
+        <input value="{{askValue}}" onChange="{{onAsk}}" onKeyDown="{{onAskKey}}" placeholder="Ask Ojas to do something — “search the web for…”, “open Coolify”, “restart brain-eval”" style="all:unset;box-sizing:border-box;flex:1;min-width:240px;padding:12px 16px;border-radius:12px;background:rgba(10,16,28,.7);border:1px solid rgba(255,255,255,.1);font-size:14.5px;color:#e7edf5">
+        <button onClick="{{runPlan}}" style="all:unset;cursor:pointer;padding:12px 26px;border-radius:12px;font-size:13.5px;font-weight:700;letter-spacing:2px;background:linear-gradient(120deg,#c65cff,#39c6ff);color:#0a1020" style-hover="box-shadow:0 0 24px rgba(198,92,255,.4)">{{runLabel}}</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">
+        <span style="font-size:11.5px;color:#7f8fa3;letter-spacing:1px">{{micHint}}</span>
+        <sc-for list="{{quickAsks}}" as="qa" hint-placeholder-count="3">
+          <button onClick="{{qa.onPick}}" style="{{qa.style}}" style-hover="border-color:rgba(198,92,255,.5);color:#e7edf5">{{qa.text}}</button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{hasPlan}}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:14px;padding:14px 16px;border-radius:12px;background:rgba(10,16,28,.72);border:1px solid rgba(198,92,255,.35)">
+          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+            <span style="font-size:14px;font-weight:700;letter-spacing:1px">{{planVerb}} · <span style="color:#39c6ff;font-family:'JetBrains Mono',monospace;font-size:13px">{{planBrowser}}</span></span>
+            <span style="{{planRiskStyle}}">{{planRisk}}</span>
+          </div>
+          <sc-for list="{{planSteps}}" as="ps" hint-placeholder-count="4">
+            <div style="{{ps.rowStyle}}"><span style="{{ps.dotStyle}}"></span>{{ps.text}}</div>
+          </sc-for>
+          <sc-if value="{{pending}}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+              <span style="flex:1;min-width:200px;font-size:12.5px;color:#ffb454">Held for approval — this writes to ojas-home-01.</span>
+              <button onClick="{{approve}}" style="all:unset;cursor:pointer;padding:9px 22px;border-radius:10px;font-size:12.5px;font-weight:700;letter-spacing:2px;color:#0a1020;background:linear-gradient(120deg,#ffb454,#ff8f6b)" style-hover="box-shadow:0 0 22px rgba(255,180,84,.4)">APPROVE &amp; RUN</button>
+              <button onClick="{{decline}}" style="all:unset;cursor:pointer;padding:9px 22px;border-radius:10px;font-size:12.5px;font-weight:700;letter-spacing:2px;color:#8695a8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)" style-hover="color:#ff8f6b;border-color:rgba(255,93,93,.4)">CANCEL</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{planDone}}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);font-size:12.5px;color:#39d98a;letter-spacing:1px">✓ COMPLETED · plan stays until your next request</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:16px">
+        <sc-for list="{{sessions}}" as="ss" hint-placeholder-count="3">
+          <div style="padding:12px 14px;border-radius:12px;background:rgba(10,16,28,.66);border:1px solid rgba(255,255,255,.09)">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="{{ss.iconStyle}}">{{ss.glyph}}</span>
+              <span style="flex:1;font-size:13.5px;font-weight:600;line-height:1.3">{{ss.title}}</span>
+              <span style="{{ss.statusStyle}}">{{ss.status}}</span>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#7f8fa3;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ss.url}}</div>
+            <div style="display:flex;gap:8px">
+              <button onClick="{{ss.onFocus}}" style="all:unset;cursor:pointer;flex:1;text-align:center;padding:7px;border-radius:9px;font-size:12px;font-weight:700;letter-spacing:1px;color:#39c6ff;background:rgba(57,198,255,.1);border:1px solid rgba(57,198,255,.28)" style-hover="background:rgba(57,198,255,.2)">FOCUS</button>
+              <button onClick="{{ss.onClose}}" style="all:unset;cursor:pointer;flex:1;text-align:center;padding:7px;border-radius:9px;font-size:12px;font-weight:700;letter-spacing:1px;color:#8695a8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)" style-hover="color:#ff8f6b;border-color:rgba(255,93,93,.4)">CLOSE</button>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{noSessions}}" hint-placeholder-val="{{ false }}">
+          <div style="padding:24px;text-align:center;color:#7f8fa3;font-size:13px;border:1px dashed rgba(255,255,255,.12);border-radius:12px">No browser sessions open on ojas-home-01. Ask Ojas to search or open something.</div>
+        </sc-if>
+      </div>
+
+      <div style="margin-top:14px;background:#060a12;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.8;color:#9fb0c3">
+        <sc-for list="{{feed}}" as="f" hint-placeholder-count="3">
+          <div><span style="color:#7f8fa3">{{f.t}}</span> · {{f.line}}</div>
+        </sc-for>
+      </div>
+      <div style="color:#7f8fa3;font-size:12px;margin-top:10px">Mutating actions (restart, deploy, rollback) always stop for approval — nothing runs on the Windows box without your click.</div>
+    </div>
+
+    </div>
+    <div style="{{secChat}}">
+    <div class="sp4" id="sec-chat" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Ojas link · chat</div>
+    <div class="sp4" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(12px);display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="position:relative;width:250px;height:210px;display:flex;align-items:center;justify-content:center;perspective:900px">
+          <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;animation:spin 22s linear infinite" aria-hidden="true">
+            <circle cx="100" cy="100" r="92" stroke="rgba(198,92,255,.3)" stroke-width="1.4" fill="none" stroke-dasharray="3 9"></circle>
+            <circle cx="100" cy="100" r="92" stroke="rgba(198,92,255,.7)" stroke-width="2" fill="none" stroke-dasharray="46 532"></circle>
+          </svg>
+          <svg width="164" height="164" viewBox="0 0 164 164" style="position:absolute;animation:spinrev 15s linear infinite" aria-hidden="true">
+            <circle cx="82" cy="82" r="74" stroke="rgba(57,198,255,.3)" stroke-width="1.2" fill="none" stroke-dasharray="2 7"></circle>
+            <circle cx="82" cy="82" r="74" stroke="rgba(57,198,255,.65)" stroke-width="1.6" fill="none" stroke-dasharray="34 430"></circle>
+          </svg>
+          <div data-cv="pet" style="position:relative;width:118px;height:118px;transform-style:preserve-3d;will-change:transform;cursor:grab">
+            <img src="uploads/logo.jpeg" alt="Ojas pet" width="118" height="118" draggable="false" style="position:absolute;inset:0;border-radius:50%;display:block;backface-visibility:hidden;box-shadow:0 0 40px rgba(255,75,51,.35),0 0 90px rgba(198,92,255,.2);user-select:none;pointer-events:none">
+            <img src="uploads/logo.jpeg" alt="" aria-hidden="true" width="118" height="118" draggable="false" style="position:absolute;inset:0;border-radius:50%;display:block;backface-visibility:hidden;transform:rotateY(180deg);user-select:none;pointer-events:none">
+          </div>
+        </div>
+        <canvas data-cv="wave" width="250" height="44" style="width:250px;height:44px;display:block" aria-hidden="true"></canvas>
+        <span style="font-size:10px;letter-spacing:2.5px;color:#8695a8">OJAS PET · DRAG TO ROTATE 360°</span>
+      </div>
+      <div style="flex:1;min-width:240px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="{{orbDotStyle}}"></span>
+          <span style="font-size:16px;font-weight:700;letter-spacing:1px">{{orbStatus}}</span>
+        </div>
+        <div style="color:#8695a8;font-size:13.5px;line-height:1.5;max-width:520px">Ojas itself is the chat loader &amp; talk-back visual — it idles while thinking, and the ring + waveform ride the audio while it speaks. Swap the still for a GLB pet later and the same drag rig carries over.</div>
+        <div style="margin-top:14px;background:rgba(10,16,28,.7);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;font-size:13.5px;max-width:520px"><span style="color:#c65cff;font-weight:700">OJAS ›</span> {{ojasLine}}</div>
+      </div>
+    </div>
+
+    </div>
+    <div style="{{secLaunch}}">
+    <div class="sp4" id="sec-launch" style="color:#7f8fa3;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 -6px">Launch bay</div>
+    <div class="sp4" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;backdrop-filter:blur(12px)">
+      <div style="color:#8695a8;font-size:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">Pinned apps <span style="font-size:11px;color:#7f8fa3;text-transform:none;letter-spacing:0">drop your own links here — Chrome, Edge, tools, dashboards</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        <sc-for list="{{launches}}" as="l" hint-placeholder-count="6">
+          <a href="{{l.href}}" style="display:flex;align-items:center;gap:10px;min-width:150px;padding:12px 16px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(10,16,28,.6);color:#e7edf5;font-weight:600;font-size:14px" style-hover="border-color:rgba(198,92,255,.55);box-shadow:0 0 18px rgba(198,92,255,.18);color:#ffffff">
+            <span style="{{l.iconStyle}}">{{l.glyph}}</span>{{l.name}}
+          </a>
+        </sc-for>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <footer style="margin-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;color:#7f8fa3;font-size:11px;letter-spacing:1.5px">
+    <span>AKRIDION LABS LLP · VYOM 4.17 · ALL DATA MOCK — see wireData()</span>
+    <span>UPTIME 6d 14h · NODE ojas-home-01</span>
+  </footer>
+</div>
+
+<sc-if value="{{customizeOpen}}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:40;background:rgba(4,7,13,.55);backdrop-filter:blur(3px)" onClick="{{closeCustomize}}"></div>
+  <aside aria-label="Customize deck" style="position:fixed;top:0;right:0;bottom:0;z-index:41;width:min(380px,92vw);background:rgba(12,18,30,.97);border-left:1px solid rgba(198,92,255,.3);backdrop-filter:blur(16px);padding:24px;overflow-y:auto;animation:drawerin .25s ease;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:18px;font-weight:700;letter-spacing:1px">Customize deck</span>
+      <button onClick="{{closeCustomize}}" aria-label="Close" style="all:unset;cursor:pointer;color:#8695a8;font-size:20px;padding:4px 10px;border-radius:8px" style-hover="color:#ffffff;background:rgba(255,255,255,.08)">×</button>
+    </div>
+    <div style="color:#8695a8;font-size:13px;line-height:1.5">{{roleTitle}}. Turn on any tab from the other seat — CTO tabs are marked blue, COO tabs magenta. Each seat keeps its own layout.</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <sc-for list="{{customizeRows}}" as="r" hint-placeholder-count="12">
+        <button onClick="{{r.onToggle}}" style="{{r.rowStyle}}" style-hover="background:rgba(255,255,255,.07)">
+          <span style="width:20px;text-align:center;font-size:15px">{{r.glyph}}</span>
+          <span style="flex:1;font-weight:600">{{r.label}}</span>
+          <span style="{{r.homeStyle}}">{{r.home}}</span>
+          <span style="{{r.switchStyle}}"><span style="{{r.knobStyle}}"></span></span>
+        </button>
+      </sc-for>
+    </div>
+    <button onClick="{{resetLayout}}" style="all:unset;cursor:pointer;text-align:center;padding:11px;border-radius:10px;font-size:13px;font-weight:700;letter-spacing:2px;color:#8695a8;border:1px solid rgba(255,255,255,.1)" style-hover="color:#e7edf5;border-color:rgba(198,92,255,.45)">RESET TO DEFAULT</button>
+  </aside>
+</sc-if>
+
+<sc-if value="{{paletteOpen}}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:50;background:rgba(4,7,13,.6);backdrop-filter:blur(4px)" onClick="{{closePalette}}"></div>
+  <div role="dialog" aria-label="Command palette" style="position:fixed;z-index:51;top:14vh;left:50%;transform:translateX(-50%);width:min(560px,92vw);background:rgba(12,18,30,.98);border:1px solid rgba(198,92,255,.35);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden;animation:drawerin .18s ease">
+    <input value="{{queryValue}}" onChange="{{onQuery}}" placeholder="Jump to a container, app, view or metric…" autoFocus="{{ true }}" style="all:unset;box-sizing:border-box;width:100%;padding:16px 18px;font-family:'Rajdhani',sans-serif;font-size:16px;color:#e7edf5;border-bottom:1px solid rgba(255,255,255,.08)">
+    <div style="max-height:52vh;overflow-y:auto;padding:8px">
+      <sc-for list="{{paletteHits}}" as="h" hint-placeholder-count="6">
+        <button onClick="{{h.run}}" style="{{h.rowStyle}}" style-hover="background:rgba(198,92,255,.14)">
+          <span style="{{h.kindStyle}}">{{h.kind}}</span>
+          <span style="flex:1;font-family:'JetBrains Mono',monospace;font-size:13px">{{h.name}}</span>
+          <span style="color:#7f8fa3;font-size:12px">{{h.hint}}</span>
+        </button>
+      </sc-for>
+      <sc-if value="{{paletteEmpty}}" hint-placeholder-val="{{ false }}">
+        <div style="padding:26px;text-align:center;color:#7f8fa3;font-size:13.5px">Nothing matches that. Try a container name, an app, or “brain”.</div>
+      </sc-if>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:12px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.08);color:#7f8fa3;font-size:11.5px;font-family:'JetBrains Mono',monospace">
+      <span>⌘K toggle · ESC close</span><span>{{alertCount}} alerts open</span>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{drawerOpen}}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:40;background:rgba(4,7,13,.55);backdrop-filter:blur(3px)" onClick="{{closeDrawer}}"></div>
+  <aside aria-label="Container detail" style="position:fixed;top:0;right:0;bottom:0;z-index:41;width:min(400px,92vw);background:rgba(12,18,30,.97);border-left:1px solid rgba(198,92,255,.3);backdrop-filter:blur(16px);padding:24px;overflow-y:auto;animation:drawerin .25s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="{{sel.ledStyle}}"></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600">{{sel.name}}</span>
+      </div>
+      <button onClick="{{closeDrawer}}" aria-label="Close" style="all:unset;cursor:pointer;color:#8695a8;font-size:20px;padding:4px 10px;border-radius:8px" style-hover="color:#ffffff;background:rgba(255,255,255,.08)">×</button>
+    </div>
+    <div style="color:#8695a8;font-size:13px;margin-bottom:18px">{{sel.app}} · port :{{sel.port}} · {{sel.cpu}} cpu · {{sel.mem}}</div>
+    <div style="font-size:11px;letter-spacing:2px;color:#7f8fa3;text-transform:uppercase;margin-bottom:8px">Image</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(10,16,28,.8);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;margin-bottom:18px">{{sel.img}}</div>
+    <div style="font-size:11px;letter-spacing:2px;color:#7f8fa3;text-transform:uppercase;margin-bottom:8px">Environment</div>
+    <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;margin-bottom:18px;overflow:hidden">
+      <sc-for list="{{sel.envs}}" as="e" hint-placeholder-count="3">
+        <div style="display:flex;justify-content:space-between;gap:12px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.06);font-family:'JetBrains Mono',monospace;font-size:11.5px">
+          <span style="color:#8695a8">{{e.k}}</span><span>{{e.v}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:11px;letter-spacing:2px;color:#7f8fa3;text-transform:uppercase;margin-bottom:8px">Logs · tail</div>
+    <div style="background:#060a12;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#9fb0c3;margin-bottom:22px">
+      <sc-for list="{{sel.logs}}" as="ln" hint-placeholder-count="4">
+        <div>{{ln.t}}</div>
+      </sc-for>
+    </div>
+    <button onClick="{{restart}}" style="font-family:'Rajdhani',sans-serif;width:100%;font-size:14px;font-weight:700;letter-spacing:2px;color:#ffb454;background:rgba(255,180,84,.08);border:1px solid rgba(255,180,84,.5);border-radius:10px;padding:12px;cursor:pointer" style-hover="background:rgba(255,180,84,.16)">{{restartLabel}}</button>
+    <div style="color:#7f8fa3;font-size:11.5px;margin-top:10px;text-align:center">Explicit action — nothing restarts automatically.</div>
+  </aside>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultRole&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;cto&quot;,&quot;options&quot;:[&quot;cto&quot;,&quot;coo&quot;],&quot;tsType&quot;:&quot;'cto'|'coo'&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;bootSound&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;nodeCount&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:55,&quot;min&quot;:0,&quot;max&quot;:90,&quot;step&quot;:5,&quot;unit&quot;:&quot;nodes&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Background&quot;}}">
+class Component extends DCLogic {
+  S = () => this.state || { viewMode: 'yard', podApp: 'brain-api', metric: 'tps', hidden: {}, orbMode: 'thinking' };
+  state = { role: null, booted: false, latency: 142, vram: 7.1, ram: 38, quota: 148, hoverC: null, selC: null, restarting: false, orbMode: 'thinking', podApp: 'brain-api', viewMode: 'yard', metric: 'tps', hidden: {},
+    range: '24h', loading: true, palette: false, q: '', qIdx: 0, rail: true, tick: 0,
+    customize: false,
+    layout: {
+      cto: { health: 1, deploys: 1, yard: 1, models: 1, research: 1, agents: 1, act: 1, chat: 1, launch: 1, work: 0, process: 0, learn: 0 },
+      coo: { work: 1, process: 1, learn: 1, agents: 1, models: 1, act: 1, chat: 1, launch: 1, health: 0, deploys: 0, yard: 0, research: 0 }
+    },
+    ask: '', running: false, pending: false, plan: null, stepIdx: 0, listening: false,
+    sessions: [
+      { id: 's1', browser: 'Chrome', title: 'CVE-2026-3311 disclosure thread', url: 'nvd.nist.gov/vuln/detail', status: 'active' },
+      { id: 's2', browser: 'Edge', title: 'Coolify · vibesec-scanner deploys', url: 'coolify.ojas.local/app/14', status: 'active' },
+      { id: 's3', browser: 'Chrome', title: 'Ollama model registry', url: 'ollama.com/library', status: 'idle' }
+    ],
+    feed: [
+      { t: '06:41:12', line: 'Web search completed · Chrome · "supabase service_role leak patterns"' },
+      { t: '06:38:55', line: 'Inspect service completed · Edge · staging build #14 healthy' },
+      { t: '06:22:04', line: 'Approval declined · restart rails_production (high risk)' }
+    ],
+    quotaUsed: 148, spend: 19, chunks: 3120, reqs: 1284, tasksDone: 41, recall: 0.86 };
+
+  componentDidMount() {
+    this.bootT = setTimeout(() => this.setState({ loading: false }), 900);
+    this.tick = setInterval(() => this.setState(s => ({
+      latency: 120 + Math.floor(Math.random() * 60),
+      vram: +(6.4 + Math.random() * 1.4).toFixed(1),
+      ram: 36 + Math.floor(Math.random() * 5),
+      tick: s.tick + 1,
+      reqs: s.reqs + Math.floor(Math.random() * 7),
+      quotaUsed: Math.min(200, s.quotaUsed + (Math.random() < .35 ? 1 : 0)),
+      chunks: s.chunks + (Math.random() < .25 ? Math.floor(Math.random() * 4) : 0),
+      tasksDone: s.tasksDone + (Math.random() < .12 ? 1 : 0),
+      recall: +(0.83 + Math.random() * 0.05).toFixed(2)
+    })), 2600);
+    this.onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); this.setState(s => ({ palette: !s.palette, q: '', qIdx: 0 })); }
+      else if (e.key === 'Escape') this.setState({ palette: false, selC: null });
+    };
+    addEventListener('keydown', this.onKey);
+    this.orbTick = setInterval(() => this.setState(s => ({ orbMode: s.orbMode === 'thinking' ? 'speaking' : 'thinking' })), 6000);
+    this.mountVisuals();
+  }
+  /* the runtime in this project doesn't wire template refs, so visuals mount by data-cv hook */
+  mountVisuals = () => {
+    const pick = k => document.querySelector('[data-cv="' + k + '"]');
+    const tryAll = () => {
+      const bg = pick('bg'), pods = pick('pods'), chart = pick('chart'), wave = pick('wave'), pet = pick('pet'), logo = pick('logo');
+      const pt = pick('podtip'), ct = pick('charttip');
+      if (pt) this.podTip = pt;
+      if (ct) this.chartTip = ct;
+      const go = (name, fn, el) => { if (!el) return; try { fn(el); } catch (err) { console.error('[deck] ' + name + ': ' + err.message + ' | ' + (err.stack || '').split('\n')[1]); } };
+      go('bg', this.initCanvas, bg); go('pods', this.initPods, pods); go('chart', this.initChart, chart);
+      go('wave', this.initWave, wave); go('pet', this.initPet, pet); go('logo', this.initLogo, logo);
+      if (!(bg && pods && chart && wave && pet && logo)) this.mountT = setTimeout(tryAll, 300);
+    };
+    tryAll();
+  };
+
+  componentDidUpdate(pp, ps) {
+    if (!this.state || !ps) return;
+    if (ps.podApp !== this.S().podApp || ps.viewMode !== this.S().viewMode) { if (this.buildPods) this.buildPods(); }
+    if (ps.metric !== this.state.metric) this.chartProg = 0;
+  }
+  componentWillUnmount() {
+    clearInterval(this.tick); clearInterval(this.orbTick); clearTimeout(this.rsT); clearTimeout(this.mountT); clearTimeout(this.bootT);
+    if (this.onKey) removeEventListener('keydown', this.onKey);
+    [this.raf, this.logoRaf, this.petRaf, this.waveRaf, this.podRaf, this.chartRaf].forEach(id => cancelAnimationFrame(id));
+    if (this.onR) removeEventListener('resize', this.onR);
+    if (this.onPodR) removeEventListener('resize', this.onPodR);
+  }
+
+  initCanvas = (cv) => {
+    if (!cv || this.cv === cv) return; this.cv = cv;
+    const ctx = cv.getContext('2d'); let W, H, pts;
+    const n = Math.max(0, this.props.nodeCount ?? 40);
+    const resize = () => { W = cv.width = innerWidth; H = cv.height = innerHeight;
+      pts = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .22, vy: (Math.random() - .5) * .22 })); };
+    resize(); this.onR = resize; addEventListener('resize', resize);
+    const loop = () => {
+      ctx.clearRect(0, 0, W, H);
+      for (const p of pts) { p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1; }
+      for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+        const a = pts[i], b = pts[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < 140) { ctx.strokeStyle = 'rgba(57,198,255,' + ((1 - d / 140) * .15) + ')'; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+      }
+      for (const p of pts) { ctx.fillStyle = 'rgba(198,92,255,.45)'; ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, 7); ctx.fill(); }
+      this.raf = requestAnimationFrame(loop);
+    };
+    loop();
+  };
+
+  /* hero logo — idle Y-spin, drag for full 360° control */
+  initLogo = (el) => {
+    if (!el || this.logoEl === el) return; this.logoEl = el;
+    let rot = 0, tilt = -8, dragging = false, px = 0, py = 0;
+    const host = el.parentElement;
+    host.addEventListener('pointerdown', e => { dragging = true; px = e.clientX; py = e.clientY; host.style.cursor = 'grabbing'; host.setPointerCapture(e.pointerId); });
+    host.addEventListener('pointermove', e => { if (!dragging) return; rot += (e.clientX - px) * .6; tilt = Math.max(-40, Math.min(40, tilt - (e.clientY - py) * .3)); px = e.clientX; py = e.clientY; });
+    const end = () => { dragging = false; host.style.cursor = 'grab'; };
+    host.addEventListener('pointerup', end); host.addEventListener('pointercancel', end);
+    const loop = (t) => {
+      const y = dragging || Math.abs(rot) > .5 ? rot : Math.sin(t * .0006) * 24;
+      if (!dragging && Math.abs(rot) > .5) rot *= .985;
+      el.style.transform = 'rotateX(' + tilt.toFixed(2) + 'deg) rotateY(' + y.toFixed(2) + 'deg)';
+      this.logoRaf = requestAnimationFrame(loop);
+    };
+    loop(0);
+  };
+
+  /* Ojas pet — the logo IS the chat loader: idle 3D drift, drag 360°, breathes while speaking */
+  initPet = (el) => {
+    if (!el || this.petEl === el) return; this.petEl = el;
+    let rot = -14, tilt = -6, dragging = false, px = 0, py = 0;
+    el.addEventListener('pointerdown', e => { dragging = true; px = e.clientX; py = e.clientY; el.style.cursor = 'grabbing'; el.setPointerCapture(e.pointerId); });
+    el.addEventListener('pointermove', e => { if (!dragging) return; rot += (e.clientX - px) * .7; tilt = Math.max(-45, Math.min(45, tilt - (e.clientY - py) * .35)); px = e.clientX; py = e.clientY; });
+    const end = () => { dragging = false; el.style.cursor = 'grab'; };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    const loop = (t) => {
+      const speaking = this.S().orbMode === 'speaking';
+      if (!dragging) { if (Math.abs(rot) > .5) rot *= .98; tilt += Math.sin(t * .0009) * .04; }
+      const sway = Math.sin(t * (speaking ? .0016 : .0007)) * (speaking ? 30 : 20);
+      const y = dragging || Math.abs(rot) > .5 ? rot : sway;
+      const s = 1 + Math.sin(t * (speaking ? .012 : .0035)) * (speaking ? .07 : .025);
+      el.style.transform = 'rotateX(' + tilt.toFixed(2) + 'deg) rotateY(' + y.toFixed(2) + 'deg) scale(' + s.toFixed(3) + ')';
+      this.petRaf = requestAnimationFrame(loop);
+    };
+    loop(0);
+  };
+
+  /* talk-back waveform under the pet */
+  initWave = (cv) => {
+    if (!cv || this.waveCv === cv) return; this.waveCv = cv;
+    const ctx = cv.getContext('2d'), W = 250, H = 44, bars = 34;
+    const amps = Array.from({ length: bars }, () => Math.random());
+    const loop = (t) => {
+      if (!this.state) return;
+      const speaking = this.S().orbMode === 'speaking';
+      ctx.clearRect(0, 0, W, H);
+      for (let i = 0; i < bars; i++) {
+        const target = speaking
+          ? (.25 + Math.abs(Math.sin(t * .006 + i * .5)) * .75) * (.55 + Math.random() * .45)
+          : .12 + Math.abs(Math.sin(t * .0016 + i * .35)) * .12;
+        amps[i] += (target - amps[i]) * .18;
+        const h = Math.max(2, amps[i] * (H - 6)), x = i * (W / bars) + 1.5, w = W / bars - 3;
+        const g = ctx.createLinearGradient(0, H / 2 - h / 2, 0, H / 2 + h / 2);
+        g.addColorStop(0, speaking ? 'rgba(198,92,255,.95)' : 'rgba(57,198,255,.6)');
+        g.addColorStop(1, speaking ? 'rgba(57,198,255,.55)' : 'rgba(57,198,255,.2)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        const r = Math.min(1.6, w / 2);
+        ctx.moveTo(x + r, H / 2 - h / 2);
+        ctx.arcTo(x + w, H / 2 - h / 2, x + w, H / 2 + h / 2, r);
+        ctx.arcTo(x + w, H / 2 + h / 2, x, H / 2 + h / 2, r);
+        ctx.arcTo(x, H / 2 + h / 2, x, H / 2 - h / 2, r);
+        ctx.arcTo(x, H / 2 - h / 2, x + w, H / 2 - h / 2, r);
+        ctx.fill();
+      }
+      this.waveRaf = requestAnimationFrame(loop);
+    };
+    loop(0);
+  };
+
+  chartModels = [
+    { id: 'ojas', name: 'ojas-coder:v1', color: '#c65cff' },
+    { id: 'qwen', name: 'qwen3:8b', color: '#39c6ff' },
+    { id: 'glm', name: 'glm-4.6 cloud', color: '#ffb454' },
+    { id: 'llama', name: 'llama3.1:8b', color: '#39d98a' }
+  ];
+
+  chartData = {
+    tps: {
+      label: 'Throughput', note: 'Tokens per second on the home box — local models under sustained load, cloud measured end-to-end.',
+      unit: ' tok/s', better: 'high', fmt: v => v.toFixed(0),
+      series: {
+        ojas: [28, 30, 31, 33, 34, 36, 35, 38, 39, 41, 42, 44, 45, 47],
+        qwen: [33, 34, 33, 35, 34, 36, 35, 36, 37, 36, 38, 37, 38, 39],
+        glm: [52, 49, 55, 51, 47, 54, 50, 44, 48, 46, 43, 45, 41, 44],
+        llama: [24, 25, 24, 26, 25, 26, 27, 26, 27, 28, 27, 28, 29, 28]
+      }
+    },
+    grounded: {
+      label: 'RAG-grounded', note: 'Share of answers backed by retrieved vault knowledge instead of guessed — the quality signal that matters most.',
+      unit: '%', better: 'high', fmt: v => v.toFixed(0),
+      series: {
+        ojas: [71, 74, 76, 78, 79, 82, 83, 85, 86, 88, 89, 90, 91, 92],
+        qwen: [64, 66, 65, 68, 69, 70, 71, 72, 71, 73, 74, 75, 76, 77],
+        glm: [80, 81, 79, 82, 83, 81, 84, 83, 85, 84, 86, 85, 87, 86],
+        llama: [55, 57, 56, 59, 58, 61, 60, 62, 63, 62, 64, 65, 64, 66]
+      }
+    },
+    cost: {
+      label: 'Cost / 1k tasks', note: 'Rupees per thousand completed tasks. Local inference trends to zero; cloud is the only line that can spike.',
+      unit: '', better: 'low', fmt: v => '₹' + v.toFixed(0),
+      series: {
+        ojas: [6, 6, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1],
+        qwen: [3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1],
+        glm: [58, 61, 55, 64, 70, 62, 66, 74, 68, 72, 78, 71, 80, 76],
+        llama: [4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1]
+      }
+    }
+  };
+
+  chartTipRef = (el) => { this.chartTip = el; };
+
+
+  initChart = (cv) => {
+    if (!cv || this.chartCv === cv) return; this.chartCv = cv;
+    this.chartProg = 0; this.chartHover = null;
+    cv.addEventListener('pointermove', e => {
+      const r = cv.getBoundingClientRect();
+      const n = 14, L = 54, R = 16, iw = r.width - L - R;
+      const i = Math.round(((e.clientX - r.left - L) / iw) * (n - 1));
+      this.chartHover = i >= 0 && i < n ? i : null;
+      this.chartPointer = { x: e.clientX - r.left, y: e.clientY - r.top, w: r.width };
+    });
+    cv.addEventListener('pointerleave', () => { this.chartHover = null; if (this.chartTip) this.chartTip.style.display = 'none'; });
+    const rgba = (hex, a) => {
+      const n = parseInt(hex.slice(1), 16);
+      return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+    };
+    const draw = (t) => {
+      if (!this.state) return;
+      const ctx = cv.getContext('2d'), dpr = Math.min(devicePixelRatio || 1, 2);
+      const W = cv.clientWidth || 900, H = 270;
+      if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const m = this.chartData[this.S().metric] || this.chartData.tps;
+      const L = 54, R = 16, Tp = 14, B = 30, iw = W - L - R, ih = H - Tp - B;
+      const shown = this.chartModels.filter(x => !(this.S().hidden || {})[x.id]);
+      const vals = shown.flatMap(x => m.series[x.id]);
+      let min = vals.length ? Math.min(...vals) : 0, max = vals.length ? Math.max(...vals) : 1;
+      const pad = (max - min) * .22 || 1; max += pad; min = Math.max(0, min - pad);
+      const n = 14, X = i => L + (i / (n - 1)) * iw, Y = v => Tp + ih - ((v - min) / (max - min || 1)) * ih;
+      ctx.font = '11px "JetBrains Mono", monospace';
+      for (let g = 0; g <= 4; g++) {
+        const y = Tp + (ih / 4) * g, v = max - (max - min) * (g / 4);
+        ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke();
+        ctx.fillStyle = '#7f8fa3'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillText(m.fmt(v), L - 10, y);
+      }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      for (let i = 0; i < n; i += 3) { ctx.fillStyle = '#7f8fa3'; ctx.fillText('D-' + (n - i), X(i), H - B + 9); }
+      this.chartProg = Math.min(1, (this.chartProg || 0) + .035);
+      const upto = 1 + (n - 1) * (1 - Math.pow(1 - this.chartProg, 3));
+      shown.forEach(mo => {
+        const s = m.series[mo.id], last = Math.min(n - 1, Math.floor(upto));
+        ctx.beginPath();
+        for (let i = 0; i <= last; i++) { const x = X(i), y = Y(s[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+        const g = ctx.createLinearGradient(0, Tp, 0, Tp + ih);
+        g.addColorStop(0, rgba(mo.color, .16)); g.addColorStop(1, rgba(mo.color, 0));
+        ctx.save(); ctx.lineTo(X(last), Tp + ih); ctx.lineTo(X(0), Tp + ih); ctx.closePath();
+        ctx.fillStyle = g; ctx.fill(); ctx.restore();
+        ctx.beginPath();
+        for (let i = 0; i <= last; i++) { const x = X(i), y = Y(s[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+        ctx.strokeStyle = mo.color; ctx.lineWidth = 2; ctx.shadowColor = mo.color; ctx.shadowBlur = 9;
+        ctx.stroke(); ctx.shadowBlur = 0;
+        const px = X(last), py = Y(s[last]);
+        ctx.fillStyle = mo.color; ctx.beginPath();
+        ctx.arc(px, py, 3 + Math.abs(Math.sin(t * .003)) * 1.6, 0, 7); ctx.fill();
+      });
+      const hi = this.chartHover;
+      if (hi != null && shown.length) {
+        ctx.strokeStyle = 'rgba(198,92,255,.5)'; ctx.setLineDash([3, 4]);
+        ctx.beginPath(); ctx.moveTo(X(hi), Tp); ctx.lineTo(X(hi), Tp + ih); ctx.stroke(); ctx.setLineDash([]);
+        shown.forEach(mo => {
+          ctx.fillStyle = mo.color; ctx.strokeStyle = '#0a1020'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(X(hi), Y(m.series[mo.id][hi]), 4.5, 0, 7); ctx.fill(); ctx.stroke();
+        });
+        if (this.chartTip) {
+          const rows = shown.slice().sort((a, b) => (m.better === 'low' ? 1 : -1) * (m.series[b.id][hi] - m.series[a.id][hi]));
+          this.chartTip.innerHTML = '<div style="color:#8695a8;margin-bottom:4px">DAY D-' + (n - hi) + '</div>' +
+            rows.map(mo => '<div style="display:flex;justify-content:space-between;gap:14px"><span style="color:' + mo.color + '">' + mo.name + '</span><b>' + m.fmt(m.series[mo.id][hi]) + m.unit + '</b></div>').join('');
+          this.chartTip.style.display = 'block';
+          const tx = X(hi) + 14;
+          this.chartTip.style.left = (tx > W - 220 ? X(hi) - 210 : tx) + 'px';
+          this.chartTip.style.top = '12px';
+        }
+      }
+      this.chartRaf = requestAnimationFrame(draw);
+    };
+    draw(0);
+  };
+
+  podData = {
+    'brain-api': [
+      { id: 'bp1', name: 'brain-prod-1', env: 'prod', app: 'Ojas router + RAG', img: 'ojas-brain:4.17', port: '8000', cpu: '41%', mem: '9.2 GB', status: 'running' },
+      { id: 'bp2', name: 'brain-prod-2', env: 'prod', app: 'Ojas router replica', img: 'ojas-brain:4.17', port: '8001', cpu: '33%', mem: '8.7 GB', status: 'running' },
+      { id: 'bd1', name: 'brain-dev', env: 'dev', app: 'Ojas dev build', img: 'ojas-brain:4.18-rc1', port: '8800', cpu: '12%', mem: '3.1 GB', status: 'running' },
+      { id: 'bt1', name: 'brain-eval', env: 'test', app: 'Ojas eval harness', img: 'ojas-brain:4.18-rc1', port: '8900', cpu: '55%', mem: '4.4 GB', status: 'failing' }
+    ],
+    'vibesec-scanner': [
+      { id: 'vp1', name: 'vibesec-prod', env: 'prod', app: 'Scanner API', img: 'vibesec:1.4.2', port: '8443', cpu: '12%', mem: '640 MB', status: 'running' },
+      { id: 'vd1', name: 'vibesec-dev', env: 'dev', app: 'Scanner dev', img: 'vibesec:1.5-dev', port: '8444', cpu: '7%', mem: '410 MB', status: 'running' },
+      { id: 'vd2', name: 'vibesec-worker', env: 'dev', app: 'Sweep worker', img: 'vibesec-worker:1.5-dev', port: '—', cpu: '22%', mem: '520 MB', status: 'running' },
+      { id: 'vt1', name: 'vibesec-ci', env: 'test', app: 'Check-suite runner', img: 'vibesec:1.5-dev', port: '—', cpu: '48%', mem: '700 MB', status: 'running' }
+    ],
+    'command-deck': [
+      { id: 'cp1', name: 'deck-prod', env: 'prod', app: 'This console', img: 'command-deck:2.0.1', port: '443', cpu: '3%', mem: '180 MB', status: 'running' },
+      { id: 'cd1', name: 'deck-dev', env: 'dev', app: 'Console dev', img: 'command-deck:2.1-dev', port: '4430', cpu: '2%', mem: '160 MB', status: 'running' },
+      { id: 'ct1', name: 'deck-e2e', env: 'test', app: 'Playwright e2e', img: 'command-deck:2.1-dev', port: '—', cpu: '9%', mem: '240 MB', status: 'running' }
+    ]
+  };
+
+  podTipRef = (el) => { this.podTip = el; };
+
+  /* 3D yard: every bay is one application, containers stacked by environment (ship-terminal read).
+     Brain mode keeps the synapse graph for the same data. */
+  initPods = (cv) => {
+    if (!cv || this.podCv === cv) return; this.podCv = cv;
+    const start = () => {
+      const T = window.THREE; if (!T) { setTimeout(start, 250); return; }
+      const H = 380;
+      const renderer = new T.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      const scene = new T.Scene();
+      const cam = new T.PerspectiveCamera(44, 2.4, .1, 100);
+      const group = new T.Group(); scene.add(group);
+      const COL = { prod: 0x39d98a, dev: 0x39c6ff, test: 0xffb454, fail: 0xff5d5d };
+      const ENVS = ['prod', 'dev', 'test'];
+      let hot = [], pulse = [];
+      const fit = () => {
+        const W = cv.clientWidth || 900;
+        renderer.setSize(W, H, false); cam.aspect = W / H; cam.updateProjectionMatrix();
+      };
+      fit(); this.onPodR = fit; addEventListener('resize', fit);
+
+      const label = (text, color, w, weight) => {
+        const c = document.createElement('canvas'); c.width = 512; c.height = 96;
+        const x = c.getContext('2d');
+        x.font = (weight || 600) + ' 52px Rajdhani, sans-serif'; x.fillStyle = color;
+        x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 256, 50);
+        const sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(c), transparent: true, depthTest: false }));
+        sp.scale.set(w, w * .1875, 1); return sp;
+      };
+      const putLabel = (text, color, w, weight, pos) => {
+        const sp = label(text, color, w, weight); sp.position.copy(pos); group.add(sp); return sp;
+      };
+      const slab = (w, h, d, color, op, edge) => {
+        const g = new T.BoxGeometry(w, h, d);
+        const m = new T.Mesh(g, new T.MeshBasicMaterial({ color, transparent: true, opacity: op }));
+        m.add(new T.LineSegments(new T.EdgesGeometry(g), new T.LineBasicMaterial({ color: edge || 0xffffff, transparent: true, opacity: op * .55 })));
+        return m;
+      };
+
+      const buildYard = () => {
+        cam.position.set(0, 3.5, 8.6); cam.lookAt(0, .05, 0);
+        const apps = Object.keys(this.podData);
+        const deck = slab(10.4, .3, 5.6, 0x0c1523, .9, 0x2a4258);
+        deck.position.y = -1.25; group.add(deck);
+        const grid = new T.GridHelper(10.4, 20, 0x24405a, 0x152537);
+        grid.position.y = -1.09; group.add(grid);
+        apps.forEach((appId, ai) => {
+          const focus = appId === this.S().podApp;
+          const bx = (ai - (apps.length - 1) / 2) * 3.3;
+          const plate = slab(2.85, .1, 4.7, focus ? 0x1b2d47 : 0x101a28, focus ? .95 : .5, focus ? 0xc65cff : 0x2a4258);
+          plate.position.set(bx, -1.05, 0); plate.userData = { app: appId }; group.add(plate); hot.push(plate);
+          putLabel(appId, focus ? '#ffffff' : '#61748a', 2.6, 700, new T.Vector3(bx, 2.15, 0));
+          ENVS.forEach((env, ei) => {
+            const z = (ei - 1) * 1.5;
+            const pods = this.podData[appId].filter(p => p.env === env);
+            if (focus) putLabel(env.toUpperCase(), '#8695a8', .95, 600, new T.Vector3(bx - 1.72, -.72, z));
+            pods.forEach((p, i) => {
+              const failing = p.status === 'failing';
+              const y = -.78 + i * .52;
+              const box = slab(2.25, .44, 1.06, failing ? COL.fail : COL[env], focus ? .88 : .26, 0xffffff);
+              box.position.set(bx, y, z);
+              box.userData = { pod: p, app: appId, base: y, failing, focus };
+              group.add(box); hot.push(box);
+              if (failing) pulse.push(box);
+              if (focus) putLabel(p.name, '#dbe6f2', 1.5, 600, new T.Vector3(bx, y + .3, z + .6));
+            });
+          });
+        });
+      };
+
+      const buildBrain = () => {
+        cam.position.set(0, 1.1, 7.8); cam.lookAt(0, .05, 0);
+        const apps = Object.keys(this.podData);
+        const center = new T.Vector3(0, .1, 0);
+        const core = new T.Mesh(new T.SphereGeometry(.32, 22, 22), new T.MeshBasicMaterial({ color: 0xc65cff, transparent: true, opacity: .95 }));
+        core.position.copy(center); group.add(core);
+        putLabel('OJAS', '#c65cff', 1.3, 700, new T.Vector3(0, .75, 0));
+        const pts = [];
+        apps.forEach((appId, ai) => {
+          const focus = appId === this.S().podApp;
+          const hub = new T.Vector3((ai - (apps.length - 1) / 2) * 2.7, ai % 2 ? .9 : -.75, ai % 2 ? -.5 : .4);
+          const hm = new T.Mesh(new T.SphereGeometry(.17, 18, 18), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: focus ? .95 : .3 }));
+          hm.position.copy(hub); hm.userData = { app: appId }; group.add(hm); hot.push(hm);
+          putLabel(appId, focus ? '#ffffff' : '#61748a', 1.9, 700, hub.clone().add(new T.Vector3(0, .5, 0)));
+          pts.push(center.clone(), hub.clone());
+          this.podData[appId].forEach((p, i, arr) => {
+            const a = (i / arr.length) * Math.PI * 2 + .5;
+            const pos = hub.clone().add(new T.Vector3(Math.cos(a) * 1.0, Math.sin(a * 1.7) * .5, Math.sin(a) * .8));
+            const failing = p.status === 'failing';
+            const m = new T.Mesh(new T.SphereGeometry(.135, 16, 16), new T.MeshBasicMaterial({ color: failing ? COL.fail : COL[p.env], transparent: true, opacity: focus ? .95 : .25 }));
+            m.position.copy(pos);
+            m.userData = { pod: p, app: appId, base: pos.y, failing, focus, phase: Math.random() * 6.28 };
+            group.add(m); hot.push(m); if (failing) pulse.push(m);
+            pts.push(hub.clone(), pos.clone());
+          });
+        });
+        group.add(new T.LineSegments(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({ color: 0x39c6ff, transparent: true, opacity: .3 })));
+      };
+
+      const build = () => {
+        while (group.children.length) group.remove(group.children[0]);
+        hot = []; pulse = []; group.rotation.set(0, 0, 0);
+        if (this.S().viewMode === 'brain') buildBrain(); else buildYard();
+      };
+      build(); this.buildPods = build;
+
+      const ray = new T.Raycaster(), mv = new T.Vector2();
+      let dragging = false, moved = 0, px = 0, py = 0;
+      const pick = (e) => {
+        const r = cv.getBoundingClientRect();
+        mv.x = ((e.clientX - r.left) / r.width) * 2 - 1; mv.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+        ray.setFromCamera(mv, cam);
+        return { hit: ray.intersectObjects(hot)[0], r };
+      };
+      cv.addEventListener('pointerdown', e => { dragging = true; moved = 0; px = e.clientX; py = e.clientY; cv.setPointerCapture(e.pointerId); });
+      cv.addEventListener('pointermove', e => {
+        if (dragging) {
+          const dx = e.clientX - px, dy = e.clientY - py; moved += Math.abs(dx) + Math.abs(dy);
+          group.rotation.y += dx * .007;
+          group.rotation.x = Math.max(-.45, Math.min(.55, group.rotation.x + dy * .005));
+          px = e.clientX; py = e.clientY;
+          if (this.podTip) this.podTip.style.display = 'none';
+          cv.style.cursor = 'grabbing'; return;
+        }
+        const { hit, r } = pick(e);
+        if (!this.podTip) return;
+        const d = hit && hit.object.userData;
+        if (d && d.pod) {
+          const p = d.pod;
+          this.podTip.innerHTML = '<b style="font-size:12.5px">' + p.name + '</b> · <span style="color:' +
+            (p.status === 'failing' ? '#ff5d5d' : '#39d98a') + '">' + p.status + '</span><br>' + p.app +
+            '<br>' + p.img + '<br>:' + p.port + ' · ' + p.cpu + ' cpu · ' + p.mem +
+            '<br><span style="color:#8695a8">' + d.app + ' · ' + p.env + '</span>';
+          this.podTip.style.display = 'block';
+          this.podTip.style.left = Math.min(e.clientX - r.left + 14, r.width - 250) + 'px';
+          this.podTip.style.top = (e.clientY - r.top + 12) + 'px';
+          cv.style.cursor = 'pointer';
+        } else if (d && d.app) {
+          this.podTip.innerHTML = '<b>' + d.app + '</b><br><span style="color:#8695a8">click to focus this bay</span>';
+          this.podTip.style.display = 'block';
+          this.podTip.style.left = Math.min(e.clientX - r.left + 14, r.width - 250) + 'px';
+          this.podTip.style.top = (e.clientY - r.top + 12) + 'px';
+          cv.style.cursor = 'pointer';
+        } else { this.podTip.style.display = 'none'; cv.style.cursor = 'grab'; }
+      });
+      const end = (e) => {
+        if (dragging && moved < 6 && e.type === 'pointerup') {
+          const { hit } = pick(e); const d = hit && hit.object.userData;
+          if (d && d.pod) { if (d.app !== this.S().podApp) this.setState({ podApp: d.app }); this.setState({ selC: d.pod.id }); }
+          else if (d && d.app) this.setState({ podApp: d.app });
+        }
+        dragging = false; cv.style.cursor = 'grab';
+      };
+      cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+      const loop = (t) => {
+        if (!this.state) return;
+        if (!dragging) group.rotation.y += this.S().viewMode === 'brain' ? .0024 : .0011;
+        if (this.S().viewMode === 'brain') {
+          for (const m of hot) { const u = m.userData; if (u.pod) m.position.y = u.base + Math.sin(t * .0012 + (u.phase || 0)) * .11; }
+        }
+        for (const m of pulse) {
+          const k = Math.abs(Math.sin(t * .0055));
+          m.material.opacity = .45 + k * .5;
+          m.scale.setScalar(1 + k * (this.S().viewMode === 'brain' ? .28 : .06));
+        }
+        renderer.render(scene, cam);
+        this.podRaf = requestAnimationFrame(loop);
+      };
+      loop(0);
+    };
+    start();
+  };
+
+  playWhoosh() {
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)(); const t = ac.currentTime;
+      const dur = 1.15, buf = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
+      f.frequency.setValueAtTime(160, t); f.frequency.exponentialRampToValueAtTime(2600, t + .7);
+      const g = ac.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.45, t + .25); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t);
+      const o = ac.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(85, t); o.frequency.exponentialRampToValueAtTime(330, t + .5);
+      const og = ac.createGain(); og.gain.setValueAtTime(.0001, t); og.gain.exponentialRampToValueAtTime(.16, t + .2); og.gain.exponentialRampToValueAtTime(.0001, t + .95);
+      o.connect(og); og.connect(ac.destination); o.start(t); o.stop(t + 1);
+    } catch (e) { }
+  }
+
+  boot = () => { if (this.props.bootSound ?? true) this.playWhoosh(); this.setState({ booted: true }); };
+
+  /* ---- wireData(): stub — replace each [data-bind] with live Vyom router data ----
+     async wireData() {
+       const q = await fetch('/vyom/quota').then(r => r.json());          // 4.14 Step 5
+       this.setState({ quota: q.glm.remaining });
+       const h = await fetch('/vyom/health').then(r => r.json());          // brain_monitor, Phase 8
+       this.setState({ vram: h.vram_used, ram: h.ram_used, latency: h.latency_ms });
+       const dk = await fetch('/vyom/containers').then(r => r.json());     // docker ps + stats
+       // tasks → /vyom/tasks (4.20) · agents → /vyom/agents · chunks → RAG index
+       // deploys → Coolify API · model → router status. Map into this.state the same way.
+     } */
+
+  /* ---- action layer: natural-language request → intent → approved browser/OS action ----
+     wireData() note: runPlan() posts to the Vyom agent host on the Windows server
+     (POST /vyom/act {intent, target, args}); the host drives Chrome/Edge via CDP or
+     Playwright and streams step events back over SSE. Everything below is mocked. */
+  intents = [
+    { id: 'search', match: /(search|google|look ?up|find out|research)/i, verb: 'Web search', browser: 'Chrome', risk: 'low',
+      steps: q => ['Focus Chrome on ojas-home-01', 'Open new tab', 'Query “' + q + '”', 'Summarise top 5 results into vault'] },
+    { id: 'open', match: /(open|launch|go to|navigate)/i, verb: 'Open site', browser: 'Chrome', risk: 'low',
+      steps: q => ['Resolve target from “' + q + '”', 'Launch browser window', 'Navigate and wait for load', 'Report page title back'] },
+    { id: 'inspect', match: /(check|inspect|status|health|monitor)/i, verb: 'Inspect service', browser: 'Edge', risk: 'low',
+      steps: q => ['Open Edge (work profile)', 'Load Coolify dashboard', 'Read deploy + health state', 'Post result to the deck'] },
+    { id: 'act', match: /(restart|deploy|kill|delete|rollback|promote)/i, verb: 'Mutating action', browser: 'None · shell', risk: 'high',
+      steps: q => ['Resolve container from “' + q + '”', 'Snapshot current state', 'Run the command', 'Verify health after 30s'] }
+  ];
+
+  detect(text) {
+    const q = (text || '').trim();
+    if (!q) return null;
+    const hit = this.intents.find(i => i.match.test(q)) || this.intents[0];
+    return { id: hit.id, verb: hit.verb, browser: hit.browser, risk: hit.risk, query: q, steps: hit.steps(q.length > 46 ? q.slice(0, 46) + '…' : q) };
+  }
+
+  runPlan = () => {
+    const plan = this.detect(this.state.ask);
+    if (!plan || this.state.running || this.state.pending) return;
+    if (plan.risk === 'high') { this.setState({ plan, pending: true, stepIdx: 0, running: false }); return; }
+    this.execPlan(plan);
+  };
+
+  approve = () => { if (this.state.plan) this.execPlan(this.state.plan); };
+
+  decline = () => {
+    const p = this.state.plan;
+    this.setState(s => ({
+      pending: false, plan: null, stepIdx: 0, ask: '',
+      feed: [{ t: new Date().toLocaleTimeString('en-GB', { hour12: false }), line: 'Approval declined · ' + (p ? p.query : 'action') + ' (high risk)' }, ...s.feed].slice(0, 6)
+    }));
+  };
+
+  execPlan = (plan) => {
+    this.planT = [];
+    this.setState({ running: true, pending: false, plan, stepIdx: 0 });
+    plan.steps.forEach((s, i) => {
+      this.planT.push(setTimeout(() => this.setState({ stepIdx: i + 1 }), 700 * (i + 1)));
+    });
+    this.planT.push(setTimeout(() => {
+      const now = new Date().toLocaleTimeString('en-GB', { hour12: false });
+      const session = plan.browser === 'None · shell'
+        ? { id: 'sh' + Date.now(), browser: 'Shell', title: plan.query.slice(0, 38), url: 'ssh ojas-home-01', status: 'done' }
+        : { id: 'br' + Date.now(), browser: plan.browser, title: plan.query.slice(0, 38), url: plan.id === 'search' ? 'google.com/search?q=…' : 'resolved target', status: 'active' };
+      this.setState(s => ({
+        running: false, pending: false, stepIdx: plan.steps.length, ask: '',
+        sessions: [session, ...s.sessions].slice(0, 6),
+        feed: [{ t: now, line: plan.verb + ' completed · ' + plan.browser + ' · ' + plan.query.slice(0, 48) }, ...s.feed].slice(0, 6)
+      }));
+    }, 700 * (plan.steps.length + 1)));
+  };
+
+  /* deterministic sparkline for a KPI: seeded by name + range so lines are stable but range-aware */
+  spark(seed, trend) {
+    const R = { '1h': 1.6, '24h': 1, '7d': .55, '30d': .35 }[this.state.range] || 1;
+    let h = 0; for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) % 9973;
+    const n = 24, pts = [];
+    for (let i = 0; i < n; i++) {
+      h = (h * 1103515245 + 12345) % 2147483648;
+      const noise = ((h / 2147483648) - .5) * 26 * R;
+      pts.push(50 - trend * (i / (n - 1)) * 26 + noise);
+    }
+    const min = Math.min(...pts), max = Math.max(...pts), sp = max - min || 1;
+    return pts.map((v, i) => (i ? 'L' : 'M') + (i * (100 / (n - 1))).toFixed(1) + ' ' + (4 + ((v - min) / sp) * 24).toFixed(1)).join(' ');
+  }
+
+  delta(seed, trend) {
+    let h = 0; for (let i = 0; i < seed.length; i++) h = (h * 37 + seed.charCodeAt(i)) % 7919;
+    const mag = 1 + (h % 180) / 10;
+    const v = (trend >= 0 ? 1 : -1) * mag;
+    return { text: (v > 0 ? '+' : '') + v.toFixed(1) + '%', up: v > 0 };
+  }
+
+  sevStyle(p) {
+    const [c, b] = p >= 90 ? ['#39d98a', 'rgba(57,217,138,.12)'] : p >= 75 ? ['#ffb454', 'rgba(255,180,84,.12)'] : ['#ff5d5d', 'rgba(255,93,93,.14)'];
+    return { fontSize: 12, padding: '2px 9px', borderRadius: 999, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace", color: c, background: b };
+  }
+
+  prodData = [
+    { id: 'brain', name: 'brain-api', app: 'Ojas router + RAG', img: 'akridion/ojas-brain:4.17', port: '8000', status: 'running', cpu: '41%', mem: '9.2 GB' },
+    { id: 'deck', name: 'command-deck', app: 'This console', img: 'akridion/command-deck:2.0.1', port: '443', status: 'running', cpu: '3%', mem: '180 MB' },
+    { id: 'vibesec', name: 'vibesec-scanner', app: 'VibeSec Scanner API', img: 'ghcr.io/akridion/vibesec:1.4.2', port: '8443', status: 'running', cpu: '12%', mem: '640 MB' },
+    { id: 'stg', name: 'rails_staging', app: 'Staging build #14', img: 'akridion/rails:stg-14', port: '3001', status: 'warning', cpu: '28%', mem: '1.1 GB' },
+    { id: 'pg', name: 'postgres', app: 'Primary datastore', img: 'postgres:16', port: '5432', status: 'running', cpu: '6%', mem: '820 MB' },
+    { id: 'mqtt', name: 'mqtt_broker', app: 'Home telemetry bus', img: 'eclipse-mosquitto:2', port: '1883', status: 'running', cpu: '1%', mem: '22 MB' }
+  ];
+
+  led(status) {
+    const c = status === 'running' ? '#39d98a' : status === 'warning' ? '#ffb454' : '#ff5d5d';
+    return { display: 'inline-block', width: 9, height: 9, borderRadius: '50%', background: c, boxShadow: '0 0 8px ' + c };
+  }
+
+  restart = () => {
+    if (this.state.restarting) return;
+    this.setState({ restarting: true });
+    this.rsT = setTimeout(() => this.setState({ restarting: false }), 1800);
+  };
+
+  renderVals() {
+    const role = this.state.role ?? (this.props.defaultRole ?? 'cto');
+    const booted = this.state.booted;
+    const tag = (c, b) => ({ fontSize: 11, padding: '2px 8px', borderRadius: 999, fontWeight: 600, color: c, background: b });
+    const okTag = tag('#39d98a', 'rgba(57,217,138,.1)'), warnTag = tag('#ffb454', 'rgba(255,180,84,.1)'), mut = { color: '#8695a8', fontSize: 12.5 };
+    const C = 326.7;
+    const btn = (on) => 'all:unset;cursor:pointer;padding:7px 20px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:1px;' +
+      (on ? 'background:linear-gradient(120deg,#c65cff,#39c6ff);color:#0a1020' : 'color:#8695a8');
+    const agentsRaw = [
+      { name: 'CEO agent', tasks: 19, success: 79, rag: 72, latency: '2.6s', cost: '₹3' },
+      { name: 'CTO agent', tasks: 128, success: 96, rag: 91, latency: '1.2s', cost: '₹0' },
+      { name: 'COO agent', tasks: 74, success: 93, rag: 88, latency: '1.4s', cost: '₹0' },
+      { name: 'Research agent', tasks: 210, success: 81, rag: 76, latency: '3.1s', cost: '₹12' },
+      { name: 'Finance agent', tasks: 41, success: 98, rag: 95, latency: '0.9s', cost: '₹0' },
+      { name: 'Product agent', tasks: 63, success: 90, rag: 84, latency: '1.8s', cost: '₹4' }
+    ];
+    const icon = (bg, c) => ({ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 8, fontWeight: 700, fontSize: 13, background: bg, color: c, fontFamily: "'JetBrains Mono',monospace" });
+    const allC = this.prodData.concat(this.podData['brain-api'], this.podData['vibesec-scanner'], this.podData['command-deck']);
+    const selRaw = allC.find(p => p.id === this.state.selC);
+    const sel = selRaw ? {
+      ...selRaw, ledStyle: this.led(selRaw.status),
+      envs: [
+        { k: 'NODE_ENV', v: 'production' }, { k: 'PORT', v: selRaw.port },
+        { k: 'OJAS_ROUTER', v: 'http://brain-api:8000' }, { k: 'LOG_LEVEL', v: 'info' }
+      ],
+      logs: [
+        { t: '[06:42:11] ' + selRaw.name + ' | health check OK (12ms)' },
+        { t: '[06:42:31] ' + selRaw.name + ' | GET /status 200' },
+        { t: '[06:43:02] ' + selRaw.name + ' | cpu ' + selRaw.cpu + ' · mem ' + selRaw.mem },
+        { t: '[06:43:40] ' + selRaw.name + ' | request routed via local model' },
+        { t: '[06:44:05] ' + selRaw.name + ' | health check OK (11ms)' }
+      ]
+    } : { envs: [], logs: [] };
+    const speaking = this.S().orbMode === 'speaking';
+    const pill = (on) => 'all:unset;cursor:pointer;padding:6px 16px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:1px;' +
+      (on ? 'background:linear-gradient(120deg,#c65cff,#39c6ff);color:#0a1020' : 'color:#8695a8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)');
+    const metric = this.chartData[this.S().metric];
+    const visible = this.chartModels.filter(mo => !this.state.hidden[mo.id]);
+    const pool = visible.length ? visible : this.chartModels;
+    const leader = pool.reduce((best, mo) => {
+      const v = metric.series[mo.id][13], bv = metric.series[best.id][13];
+      return (metric.better === 'low' ? v < bv : v > bv) ? mo : best;
+    }, pool[0]);
+    const leaderVal = metric.series[leader.id][13];
+    const st = this.state, loading = st.loading;
+    const chip = (on) => 'all:unset;cursor:pointer;padding:5px 13px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:1px;font-family:JetBrains Mono,monospace;' +
+      (on ? 'background:linear-gradient(120deg,#c65cff,#39c6ff);color:#0a1020' : 'color:#8695a8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)');
+    const kpi = (seed, trend, color) => {
+      const d = this.delta(seed, trend);
+      return { path: this.spark(seed, trend), color, delta: d.text, deltaStyle: { color: d.up ? '#39d98a' : '#ff8f6b', fontSize: 12, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace" } };
+    };
+    const allPods = this.prodData.concat(this.podData['brain-api'], this.podData['vibesec-scanner'], this.podData['command-deck']);
+    const alertsRaw = [
+      { sev: 'danger', title: 'brain-eval failing', detail: 'Ojas eval harness · restart loop ×3 in the last hour', act: () => this.setState({ podApp: 'brain-api', selC: 'bt1' }) },
+      { sev: 'warn', title: 'CEO agent grounding at 72%', detail: 'Below the 75% floor — re-check its cabinets', act: () => this.setState({ metric: 'grounded' }) },
+      { sev: 'warn', title: 'GLM quota ' + st.quotaUsed + '/200', detail: 'Resets in 4h, then routing drops to the local floor', act: () => this.setState({ metric: 'cost' }) },
+      { sev: 'ok', title: 'Staging build #14 healthy', detail: 'vibesec-scanner promoted 26 min ago', act: () => this.setState({ podApp: 'vibesec-scanner' }) }
+    ];
+    const sevTone = { danger: '#ff5d5d', warn: '#ffb454', ok: '#39d98a' };
+    const q = (st.q || '').toLowerCase();
+    const paletteAll = [
+      ...allPods.map(p => ({ kind: 'container', name: p.name, hint: p.app, run: () => this.setState({ selC: p.id, palette: false }) })),
+      ...Object.keys(this.podData).map(a => ({ kind: 'app', name: a, hint: 'focus this bay', run: () => this.setState({ podApp: a, palette: false }) })),
+      { kind: 'view', name: 'Yard view', hint: '3D container yard', run: () => this.setState({ viewMode: 'yard', palette: false }) },
+      { kind: 'view', name: 'Brain view', hint: '3D synapse graph', run: () => this.setState({ viewMode: 'brain', palette: false }) },
+      { kind: 'role', name: 'CTO view', hint: 'infrastructure first', run: () => this.setState({ role: 'cto', palette: false }) },
+      { kind: 'role', name: 'COO view', hint: 'work & cost first', run: () => this.setState({ role: 'coo', palette: false }) },
+      ...Object.keys(this.chartData).map(k => ({ kind: 'metric', name: this.chartData[k].label, hint: 'model comparison', run: () => this.setState({ metric: k, palette: false }) }))
+    ];
+    const paletteHits = paletteAll.filter(i => !q || (i.name + ' ' + i.hint + ' ' + i.kind).toLowerCase().includes(q)).slice(0, 8);
+    const REG = [
+      { key: 'health', label: 'Health', glyph: '◉', home: 'CTO' },
+      { key: 'deploys', label: 'Deploys', glyph: '⇡', home: 'CTO' },
+      { key: 'yard', label: 'Yard', glyph: '▤', home: 'CTO' },
+      { key: 'research', label: 'Research', glyph: '❋', home: 'CTO' },
+      { key: 'work', label: 'Work', glyph: '⛭', home: 'COO' },
+      { key: 'process', label: 'Process', glyph: '≡', home: 'COO' },
+      { key: 'learn', label: 'Learnings', glyph: '✦', home: 'COO' },
+      { key: 'agents', label: 'Agents', glyph: '⣿', home: 'Shared' },
+      { key: 'models', label: 'Models', glyph: '◧', home: 'Shared' },
+      { key: 'act', label: 'Actions', glyph: '➤', home: 'Shared' },
+      { key: 'chat', label: 'Chat', glyph: '◈', home: 'Shared' },
+      { key: 'launch', label: 'Launch', glyph: '⧉', home: 'Shared' }
+    ];
+    const vis = (st.layout && st.layout[role]) || {};
+    const secStyle = {};
+    REG.forEach(s => { secStyle[s.key] = vis[s.key] ? 'display:contents' : 'display:none'; });
+    const sections = REG.filter(s => vis[s.key]).map(s => ({ id: 'sec-' + s.key, label: s.label, glyph: s.glyph }));
+    return {
+      initCanvas: this.initCanvas, initLogo: this.initLogo, initPet: this.initPet, initWave: this.initWave,
+      initPods: this.initPods, podTipRef: this.podTipRef, initChart: this.initChart, chartTipRef: this.chartTipRef, boot: this.boot,
+      setYard: () => this.setState({ viewMode: 'yard' }), setBrain: () => this.setState({ viewMode: 'brain' }),
+      yardPressed: String(this.S().viewMode === 'yard'), brainPressed: String(this.S().viewMode === 'brain'),
+      yardBtnStyle: pill(this.S().viewMode === 'yard'), brainBtnStyle: pill(this.S().viewMode === 'brain'),
+      metrics: Object.keys(this.chartData).map(k => ({
+        label: this.chartData[k].label, pressed: String(k === this.state.metric),
+        onPick: () => this.setState({ metric: k }), btnStyle: pill(k === this.state.metric)
+      })),
+      chartLegend: this.chartModels.map(mo => {
+        const on = !this.state.hidden[mo.id];
+        return {
+          name: mo.name, pressed: String(on),
+          onToggle: () => this.setState(s => ({ hidden: { ...s.hidden, [mo.id]: on } })),
+          btnStyle: 'all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;font-family:JetBrains Mono,monospace;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05);' + (on ? 'color:#e7edf5' : 'color:#4d5a6b'),
+          dotStyle: { width: 8, height: 8, borderRadius: '50%', background: on ? mo.color : '#33404f', boxShadow: on ? '0 0 8px ' + mo.color : 'none' }
+        };
+      }),
+      secHealth: secStyle.health, secDeploys: secStyle.deploys, secYard: secStyle.yard, secResearch: secStyle.research,
+      secWork: secStyle.work, secProcess: secStyle.process, secLearn: secStyle.learn,
+      secAgents: secStyle.agents, secModels: secStyle.models, secAct: secStyle.act, secChat: secStyle.chat, secLaunch: secStyle.launch,
+      roleTitle: role === 'cto' ? 'CTO deck · build, infra, research' : 'COO deck · delivery, process, cost',
+      customizeOpen: st.customize,
+      openCustomize: () => this.setState({ customize: true }),
+      closeCustomize: () => this.setState({ customize: false }),
+      resetLayout: () => this.setState(s => ({
+        layout: { ...s.layout, [role]: role === 'cto'
+          ? { health: 1, deploys: 1, yard: 1, models: 1, research: 1, agents: 1, act: 1, chat: 1, launch: 1, work: 0, process: 0, learn: 0 }
+          : { work: 1, process: 1, learn: 1, agents: 1, models: 1, act: 1, chat: 1, launch: 1, health: 0, deploys: 0, yard: 0, research: 0 } }
+      })),
+      customizeRows: REG.map(s => {
+        const on = !!vis[s.key];
+        return {
+          label: s.label, glyph: s.glyph, home: s.home,
+          homeStyle: { fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', padding: '2px 8px', borderRadius: 6, color: s.home === 'CTO' ? '#39c6ff' : s.home === 'COO' ? '#c65cff' : '#7f8fa3', background: s.home === 'CTO' ? 'rgba(57,198,255,.1)' : s.home === 'COO' ? 'rgba(198,92,255,.1)' : 'rgba(255,255,255,.05)' },
+          state: on ? 'ON' : 'OFF',
+          rowStyle: 'all:unset;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border-radius:10px;font-size:14px;color:' + (on ? '#e7edf5' : '#7f8fa3') + ';background:' + (on ? 'rgba(255,255,255,.05)' : 'transparent'),
+          switchStyle: { flex: 'none', width: 38, height: 21, borderRadius: 999, padding: 2, display: 'flex', alignItems: 'center', justifyContent: on ? 'flex-end' : 'flex-start', background: on ? 'linear-gradient(120deg,#c65cff,#39c6ff)' : 'rgba(255,255,255,.1)' },
+          knobStyle: { width: 17, height: 17, borderRadius: '50%', background: on ? '#0a1020' : '#7f8fa3' },
+          onToggle: () => this.setState(s2 => ({ layout: { ...s2.layout, [role]: { ...s2.layout[role], [s.key]: on ? 0 : 1 } } }))
+        };
+      }),
+      ideas: [
+        { name: 'A2 · Security / compliance service', track: 'Track A', state: 'next', note: 'Unlocks when the scanner ships' },
+        { name: 'A3 · Agent eval harness as a product', track: 'Track A', state: 'queued', note: 'Reuses the eval container' },
+        { name: 'B1 · Home telemetry pack (MQTT)', track: 'Track B', state: 'queued', note: 'Weekend-sized' },
+        { name: 'B4 · Voice-first Ojas on mobile', track: 'Track B', state: 'parked', note: 'Waits for the action layer to harden' }
+      ].map(i => ({ ...i, tagStyle: { fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 999, color: i.state === 'next' ? '#39d98a' : i.state === 'queued' ? '#39c6ff' : '#7f8fa3', background: i.state === 'next' ? 'rgba(57,217,138,.12)' : i.state === 'queued' ? 'rgba(57,198,255,.1)' : 'rgba(255,255,255,.05)' } })),
+      cadence: [
+        { name: 'Monday · scope lock', when: 'done', detail: 'Two rocks for the week, nothing added midweek' },
+        { name: 'Wednesday · agent review', when: 'today', detail: 'Grounding + success per agent, cut what underperforms' },
+        { name: 'Friday · ship or cut', when: 'upcoming', detail: 'Anything not shippable gets parked, not carried' },
+        { name: 'Monthly · cost + quota audit', when: 'upcoming', detail: 'Keep cloud inside the free tier' }
+      ].map(c => ({ ...c, tagStyle: { fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 999, textTransform: 'uppercase', color: c.when === 'done' ? '#39d98a' : c.when === 'today' ? '#ffb454' : '#7f8fa3', background: c.when === 'done' ? 'rgba(57,217,138,.12)' : c.when === 'today' ? 'rgba(255,180,84,.12)' : 'rgba(255,255,255,.05)' } })),
+      learnings: [
+        { verdict: 'worked', title: 'Local-first routing', body: 'Cloud spend fell to ₹19/mo with no measurable quality loss on coding tasks.' },
+        { verdict: 'worked', title: 'Grounding as the quality metric', body: 'RAG-grounded % caught the CEO agent drifting three days before anyone noticed the output.' },
+        { verdict: 'failed', title: 'Auto-restarting failing containers', body: 'Masked a config bug for two days. Everything mutating now waits for a human click.' }
+      ].map(l => ({ ...l, tagStyle: { fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 999, textTransform: 'uppercase', color: l.verdict === 'worked' ? '#39d98a' : '#ff8f6b', background: l.verdict === 'worked' ? 'rgba(57,217,138,.12)' : 'rgba(255,93,93,.12)' } })),
+      askValue: st.ask,
+      onAsk: (e) => this.setState({ ask: e.target.value }),
+      onAskKey: (e) => { if (e.key === 'Enter') this.runPlan(); },
+      runPlan: this.runPlan,
+      running: st.running,
+      runLabel: st.running ? 'RUNNING…' : 'RUN',
+      hasPlan: !!st.plan,
+      pending: !!st.pending,
+      approve: this.approve, decline: this.decline,
+      planDone: !!(st.plan && !st.running && !st.pending),
+      planVerb: st.plan ? st.plan.verb : '', planBrowser: st.plan ? st.plan.browser : '',
+      planRiskStyle: { fontSize: 11, fontWeight: 700, letterSpacing: 1, padding: '2px 9px', borderRadius: 999, textTransform: 'uppercase', color: st.plan && st.plan.risk === 'high' ? '#ff5d5d' : '#39d98a', background: st.plan && st.plan.risk === 'high' ? 'rgba(255,93,93,.14)' : 'rgba(57,217,138,.12)' },
+      planRisk: st.plan ? (st.plan.risk === 'high' ? 'needs approval' : 'auto-approved') : '',
+      planSteps: (st.plan ? st.plan.steps : []).map((s, i) => ({
+        text: s, n: i + 1,
+        dotStyle: { flex: 'none', width: 9, height: 9, borderRadius: '50%', background: i < st.stepIdx ? '#39d98a' : i === st.stepIdx ? '#c65cff' : '#2b3849', boxShadow: i === st.stepIdx ? '0 0 10px #c65cff' : 'none', animation: i === st.stepIdx ? 'pulse 1s infinite' : 'none' },
+        rowStyle: { display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', fontSize: 13.5, color: i <= st.stepIdx ? '#e7edf5' : '#7f8fa3' }
+      })),
+      quickAsks: [
+        'Search the web for CVE feeds on Supabase',
+        'Open Coolify and check staging',
+        'Check vibesec-scanner health'
+      ].map(t => ({ text: t, onPick: () => this.setState({ ask: t }), style: 'all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font-size:12.5px;color:#8695a8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)' })),
+      listening: st.listening,
+      micStyle: 'all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;font-size:16px;border:1px solid ' + (st.listening ? 'rgba(198,92,255,.6);background:rgba(198,92,255,.16);color:#e7edf5' : 'rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#8695a8'),
+      toggleMic: () => this.setState(s => ({ listening: !s.listening })),
+      micHint: st.listening ? 'Listening — say “Ojas, search…”' : 'Voice off · click to arm the mic',
+      sessions: st.sessions.map(s => ({
+        ...s,
+        glyph: s.browser === 'Chrome' ? 'Cr' : s.browser === 'Edge' ? 'Ed' : '>_',
+        iconStyle: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 8, fontWeight: 700, fontSize: 12, fontFamily: "'JetBrains Mono',monospace", background: s.browser === 'Chrome' ? 'rgba(57,198,255,.15)' : s.browser === 'Edge' ? 'rgba(57,217,138,.15)' : 'rgba(255,180,84,.15)', color: s.browser === 'Chrome' ? '#39c6ff' : s.browser === 'Edge' ? '#39d98a' : '#ffb454' },
+        statusStyle: { fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: s.status === 'active' ? '#39d98a' : s.status === 'done' ? '#8695a8' : '#ffb454' },
+        onFocus: () => this.setState(st2 => ({ feed: [{ t: new Date().toLocaleTimeString('en-GB', { hour12: false }), line: 'Focused ' + s.browser + ' window · ' + s.title }, ...st2.feed].slice(0, 6) })),
+        onClose: () => this.setState(st2 => ({ sessions: st2.sessions.filter(x => x.id !== s.id), feed: [{ t: new Date().toLocaleTimeString('en-GB', { hour12: false }), line: 'Closed ' + s.browser + ' session · ' + s.title }, ...st2.feed].slice(0, 6) }))
+      })),
+      noSessions: st.sessions.length === 0,
+      feed: st.feed,
+      loading, ready: !loading,
+      skeleton: { display: 'block', height: 14, borderRadius: 6, background: 'linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.12),rgba(255,255,255,.05))', backgroundSize: '200% 100%', animation: 'shimmer 1.3s linear infinite' },
+      skeletonBig: { display: 'block', height: 26, width: '62%', borderRadius: 8, background: 'linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.12),rgba(255,255,255,.05))', backgroundSize: '200% 100%', animation: 'shimmer 1.3s linear infinite' },
+      ranges: ['1h', '24h', '7d', '30d'].map(r => ({ label: r, pressed: String(r === st.range), onPick: () => this.setState({ range: r }), btnStyle: chip(r === st.range) })),
+      rangeLabel: st.range, liveStamp: 'live · updated ' + (st.tick ? 'just now' : 'on load'),
+      rail: st.rail, railWidth: st.rail ? 190 : 64,
+      toggleRail: () => this.setState(s => ({ rail: !s.rail })),
+      railGlyph: st.rail ? '⟨' : '⟩',
+      sections: sections.map(s => ({ ...s, href: '#' + s.id, showLabel: st.rail ? s.label : '', style: 'display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:#8695a8;font-size:13px;font-weight:600;letter-spacing:1px;text-decoration:none;white-space:nowrap' })),
+      brief: 'One container is down and cloud quota is ' + Math.round(st.quotaUsed / 2) + '% spent — everything else is nominal across ' + allPods.length + ' containers and ' + st.reqs.toLocaleString() + ' requests in the last ' + st.range + '.',
+      alertCount: alertsRaw.filter(a => a.sev !== 'ok').length,
+      alerts: alertsRaw.map(a => ({
+        ...a,
+        dotStyle: { width: 9, height: 9, borderRadius: '50%', flex: 'none', background: sevTone[a.sev], boxShadow: '0 0 8px ' + sevTone[a.sev], animation: a.sev === 'danger' ? 'pulse 1.2s infinite' : 'none' },
+        cardStyle: 'all:unset;cursor:pointer;box-sizing:border-box;display:flex;gap:10px;align-items:flex-start;min-width:230px;flex:1;padding:12px 14px;border-radius:12px;background:rgba(10,16,28,.66);border:1px solid ' + (a.sev === 'danger' ? 'rgba(255,93,93,.45)' : a.sev === 'warn' ? 'rgba(255,180,84,.32)' : 'rgba(255,255,255,.09)')
+      })),
+      reqs: st.reqs.toLocaleString(), chunksTxt: st.chunks.toLocaleString(), recallTxt: st.recall.toFixed(2), spendTxt: '₹' + st.spend,
+      kVram: kpi('vram' + st.range, 1, '#39c6ff'), kRam: kpi('ram' + st.range, 1, '#39d98a'),
+      kQuota: kpi('quota' + st.range, 1, '#ffb454'), kSpend: kpi('spend' + st.range, -1, '#c65cff'),
+      kModel: kpi('model' + st.range, 1, '#39c6ff'), kFire: kpi('fire' + st.range, -1, '#39d98a'),
+      kChunks: kpi('chunks' + st.range, 1, '#c65cff'), kReqs: kpi('reqs' + st.range, 1, '#39c6ff'),
+      paletteOpen: st.palette,
+      openPalette: () => this.setState({ palette: true, q: '' }),
+      closePalette: () => this.setState({ palette: false }),
+      onQuery: (e) => this.setState({ q: e.target.value }),
+      queryValue: st.q,
+      paletteHits: paletteHits.map(i => ({
+        ...i,
+        kindStyle: { fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#7f8fa3', border: '1px solid rgba(255,255,255,.1)', borderRadius: 6, padding: '2px 7px' },
+        rowStyle: 'all:unset;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border-radius:10px;color:#e7edf5;font-size:14px'
+      })),
+      paletteEmpty: paletteHits.length === 0,
+      metricNote: metric.note,
+      leaderName: leader.name, leaderValue: metric.fmt(leaderVal) + metric.unit,
+      leaderStyle: { color: leader.color },
+      ojasLine: speaking
+        ? 'Scanner check #3 is 80% through the secrets sweep — two low-severity findings queued for review.'
+        : 'Reading 12 chunks from cabinet 09_Research_Seeds…',
+      podApps: Object.keys(this.podData).map(id => ({
+        name: id,
+        onPick: () => { this.setState({ podApp: id }); if (this.buildPods) this.buildPods(id); },
+        btnStyle: 'all:unset;cursor:pointer;padding:6px 16px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:1px;font-family:JetBrains Mono,monospace;' +
+          (id === (this.S().podApp) ? 'background:linear-gradient(120deg,#c65cff,#39c6ff);color:#0a1020' : 'color:#8695a8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)')
+      })),
+      showBoot: !booted,
+      latency: this.state.latency, vram: this.state.vram.toFixed(1), ram: this.state.ram,
+      vramOff: (C * (1 - this.state.vram / 12)).toFixed(1),
+      ramOff: (C * (1 - this.state.ram / 64)).toFixed(1),
+      quotaText: this.state.quota + '/200', quotaPct: Math.round(this.state.quota / 200 * 100),
+      ctoPressed: String(role === 'cto'), cooPressed: String(role === 'coo'),
+      setCto: () => this.setState({ role: 'cto' }), setCoo: () => this.setState({ role: 'coo' }),
+      ctoBtnStyle: btn(role === 'cto'), cooBtnStyle: btn(role === 'coo'),
+      ctoOp: role === 'cto' ? 1 : .38, cooOp: role === 'coo' ? 1 : .38,
+      upCount: 5,
+      containers: [
+        { name: 'rails_dev', status: 'Up', tagStyle: okTag },
+        { name: 'rails_test', status: 'Up', tagStyle: okTag },
+        { name: 'rails_staging', status: 'Up', tagStyle: okTag },
+        { name: 'rails_production', status: 'Up', tagStyle: okTag },
+        { name: 'mqtt_broker', status: 'Up', tagStyle: okTag }
+      ],
+      deploys: [
+        { app: 'vibesec-scanner', env: 'staging · build #14 ✓' },
+        { app: 'command-deck', env: 'prod · healthy' },
+        { app: 'brain-api', env: 'prod · healthy' }
+      ],
+      prod: this.prodData.map(p => ({
+        ...p,
+        hovered: this.state.hoverC === p.id,
+        statusLabel: p.status,
+        ledStyle: this.led(p.status),
+        blockColor: p.status === 'warning' ? '#ffb454' : (p.id === 'brain' ? '#c65cff' : p.id === 'deck' ? '#39c6ff' : p.id === 'vibesec' ? '#ff4b33' : '#2b4a63'),
+        onEnter: () => this.setState({ hoverC: p.id }),
+        onOpen: () => this.setState({ selC: p.id, hoverC: null })
+      })),
+      onLeaveProd: () => this.setState({ hoverC: null }),
+      drawerOpen: !!selRaw, sel,
+      closeDrawer: () => this.setState({ selC: null }),
+      restart: this.restart,
+      restartLabel: this.state.restarting ? 'RESTARTING…' : 'RESTART CONTAINER',
+      orbStatus: speaking ? 'OJAS is speaking' : 'OJAS is thinking…',
+      orbDotStyle: { width: 10, height: 10, borderRadius: '50%', background: speaking ? '#c65cff' : '#39c6ff', boxShadow: '0 0 10px ' + (speaking ? '#c65cff' : '#39c6ff'), animation: 'pulse 1.4s infinite' },
+      tasks: [
+        { name: 'Scanner · check #3 (secrets)', state: 'in progress', tagStyle: warnTag },
+        { name: 'Scanner · check #1 service_role', state: 'pending', tagStyle: mut },
+        { name: 'Landing page copy', state: 'pending', tagStyle: mut },
+        { name: 'Ingest 09_Research_Seeds', state: 'done', tagStyle: okTag }
+      ],
+      agents: agentsRaw.map(a => ({ ...a, successStyle: this.sevStyle(a.success), ragStyle: this.sevStyle(a.rag) })),
+      launches: [
+        { name: 'Chrome', glyph: 'Cr', href: '#', iconStyle: icon('rgba(57,198,255,.15)', '#39c6ff') },
+        { name: 'Edge', glyph: 'Ed', href: '#', iconStyle: icon('rgba(57,217,138,.15)', '#39d98a') },
+        { name: 'Terminal', glyph: '>_', href: '#', iconStyle: icon('rgba(255,180,84,.15)', '#ffb454') },
+        { name: 'VS Code', glyph: '{}', href: '#', iconStyle: icon('rgba(198,92,255,.15)', '#c65cff') },
+        { name: 'Coolify', glyph: 'Co', href: '#', iconStyle: icon('rgba(255,75,51,.15)', '#ff4b33') },
+        { name: 'Add app +', glyph: '+', href: '#', iconStyle: icon('rgba(134,149,168,.15)', '#8695a8') }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
