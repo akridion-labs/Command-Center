@@ -46,7 +46,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 1 | scaffold: Vite react-ts, deps, brief, logo, agent picker, README | §5.1 | ✅ 26-27 Sep (main) | `git log --oneline` shows it |
 | 2 | `vite.config.ts`: React + Tailwind v4 plugin, `base: '/console/'`, `/vyom` proxy, vitest jsdom + ONE smoke test | §5.2 | ✅ 29 Sep - `ojas build`, coder-dev (hash in the project copy) | `npm run build && npx vitest run` + `grep -E "console|proxy|tailwind" vite.config.ts` |
 | 3 | `src/api.ts` - the `Panel<T>` wrapper + tests for 401 / 403 / 501 | §5.3 | ✅ 29 Sep - `ojas build`, coder-dev, fixed on its own retry | `npx vitest run` |
-| 4 | panel shell + a `NotBuilt` component that shows `why` (never `[]`) + test | §6 | ✅ 2026-09-29 538a9a0 (coder-dev) | `npx vitest run` |
+| 4 | panel shell + a `NotBuilt` component that shows `why` (never `[]`) + test | §6 | ✅ 29 Sep - `ojas build`, coder-dev | `npx vitest run` |
 | 4b | **design fidelity** ☁: port the REFERENCE layout from `docs/design/Vyom Command Deck.dc.html` (§5.7) - its grid, spacing, colour + font tokens and component structure, read as SOURCE (the markup/CSS), not from a screenshot; tokens asserted in `src/design/*.test.ts` | §5.7 | ✅ 2026-09-29 dcfa388 (claude-plan), reviewed 2026-09-29 | `npx vitest run src/design` 👀 side-by-side screenshots of the reference and the app at 1280 px AND 1920 px |
 | 5 | the six panels ☁ - ONE PANEL PER STORY, each from its real endpoint, one render test per panel in `src/panels/` incl. NOT BUILT | §2, §6 | 👀 2026-09-29 e598020 (claude-plan) - review: `npm run dev`: six panels, every NOT BUILT one shows its why | `npx vitest run src/panels` 👀 `npm run dev`: six panels, every NOT BUILT one shows its why |
 | 6 | ask box → `/vyom/ask`, sources under the answer; tests in `src/ask/` | §6 | 👀 2026-09-29 f96c6a1 (coder-dev) - review: a real question in `npm run dev` shows its sources | `npx vitest run src/ask` 👀 a real question in `npm run dev` shows its sources |
@@ -56,6 +56,7 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 10 | three.js background ☁ (Phase 1b, after the panels) | §3 3D | 👀 2026-09-29 3c0dfeb (claude-plan) - review: renders; RDP not stuttering | `npm run build` 👀 renders; RDP not stuttering |
 | 11 | founder vs COO/CTO tiles PROVEN by logging in as each | §6 | ⬜ | two logins, two screenshots |
 | 12 | **self-check panel**: Vyom's own health + "what you owe" (reviews, packets, open steps) - the same facts as `ojas selfcheck`; test in `src/panels/SelfCheck.test.tsx` | needs a `/vyom/selfcheck` endpoint first (backend story) | ⬜ | `npx vitest run src/panels/SelfCheck` 👀 shows NOT BUILT until the endpoint exists |
+| 12b | **end-to-end + visual tests** ☁: Playwright harness per §5.8 - every panel, the ask box and the tiles driven in a real browser against the BUILT app with `/vyom/*` mocked; `@visual` screenshots at 1280 and 1920; a test that fails on ANY request leaving localhost (intranet rule) | §5.8 | ⬜ | `npx playwright test --grep-invert @visual` 👀 `npx playwright show-report` - the first screenshots are the baseline you approve |
 | 13 | **conversational ask box**: follows the previous turn (like the `ojas` loop), and answers from a TOOL (self-check, weather) are labelled as such; tests in `src/ask/` | §6 | ⬜ | `npx vitest run src/ask` |
 
 **☁ and 👀 in the table (140).** ☁ in a slice = design-heavy: `ojas build` runs that one
@@ -66,6 +67,19 @@ a PERSON must look at something (screenshots, `npm run dev`); the loop records t
 has to pass `npm run build` - vitest alone does not type-check. After the commands pass,
 the runner also reads the code (142): no `@ts-expect-error` / `any` / skipped tests, and no
 component defined twice. Proven but wrong? `ojas build --reopen <id> "what is wrong"`.
+**A whole team per slice (146).** Before any code the BA (Claude plan) writes
+`docs/stories/<id>.md` - goal, journey, acceptance criteria AC1..n, states, out of scope and the
+test cases `TC-<id>-n` (unit/e2e/visual/manual, each tied to an AC). The developer builds it and
+automates every unit/e2e case with the TC id in the test title; it cannot edit the story. The runner
+executes the tests and maps results to the cases - a case without a passing test sends the slice back -
+and commits the execution report `docs/stories/<id>-tests.md`. Manual cases are your 👀.
+`ojas prd` turns the stories into .docx. Older slices: `ojas build --story <id>`.
+
+**The loop runs at night (145).** `ojas night` (cron 00:30): pulls YOUR pushed edits (fast-forward
+only), checks which libraries moved (npm registry - research on majors waits for your approval),
+builds up to 3 slices (local model first, the last retry escalates to the plan), and writes the
+report to the brain. Morning: `ojas morning`, look in `ojas preview`, approve or reopen. Your own UI
+edits: change the code anywhere, push, then `ojas pull-deploy` (tests → ship → publish).
 ⚙ in a slice = an operations step (shipping): the runner runs the proof itself and no agent
 touches the code. `ojas preview` shows MAIN on :5174 from a separate folder while the loop works.
 
@@ -453,7 +467,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 490 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 507 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
@@ -724,9 +738,14 @@ the solution.
 The deck already serves static files from `~/vyom`. Confirm:
 
 ```bash
-curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8765/console/
+ojas ship-console ~/Projects/command-center
 ```
-*You should see:* `200`.
+*You should see:* `✅ shipped: ~/vyom/console is byte-identical to this build` and
+`✅ the deck is up and guards it behind its login (302 → /vyom/login)`.
+⚠️ (144) Since the deck login (Phase 4 D2), EVERY path - static files too - answers an
+unauthenticated request with **302 → /vyom/login**, and `curl -f` treats a 302 as success, so
+the old `curl … → 200` check could never fail. What the machine can prove is the files and the
+guard; what the page looks like after login is your 👀 (log in, F12, zero CSP errors).
 
 ### 5.6 Make it a desktop app that opens at logon
 
@@ -807,6 +826,30 @@ correct, honest render.
 | `bootSound` | `true` | ⚠️ browsers **block audio before a click**, so a sound at logon will silently not play. **Deepak decides:** play on first click (recommended, boring) or off |
 
 ---
+
+### 5.8 End-to-end and visual tests - the app driven like a person uses it (145)
+
+Unit tests prove a component; they do not prove the page. From slice 12b on, **every behaviour a
+person can see has a Playwright test**, and the runner runs them for every later slice.
+
+```bash
+npm i -D @playwright/test
+npx playwright install --with-deps chromium     # ONCE, by you - it downloads a browser
+```
+
+- `playwright.config.ts`: `testDir: 'e2e'`, `webServer: { command: 'npm run build && npx vite preview --port 4173 --strictPort', url: 'http://localhost:4173/console/', reuseExistingServer: true }`, `use: { baseURL: 'http://localhost:4173/console/' }`, one project: chromium.
+- **Mock the deck, never call it**: `e2e/fixtures.ts` answers every `/vyom/*` with `page.route` from JSON files in `e2e/data/` - one BUILT and one NOT BUILT (`{built:false, why}`) shape per endpoint. The e2e run needs no login, no network, no live deck, and is the same every night.
+- `e2e/panels.spec.ts` - six panels render; each NOT BUILT one shows **NOT BUILT** and its `why`, never an empty list.
+- `e2e/ask.spec.ts` - a question posts to `/vyom/ask` and the sources appear under the answer.
+- `e2e/tiles.spec.ts` - tiles follow `/vyom/me` `options`; `config_problem` is shown when present.
+- `e2e/intranet.spec.ts` - **the intranet rule as a test**: record every request the page makes; fail if any host is not `localhost`/`127.0.0.1`.
+- `e2e/visual.spec.ts` - tagged `@visual`: `await expect(page).toHaveScreenshot()` at 1280×800 and 1920×1080, animations disabled, the three.js canvas masked.
+- `package.json`: `"e2e": "playwright test --grep-invert @visual"`.
+
+**How a UI change is cross-verified:** the runner compares `@visual` screenshots with the approved
+ones after every slice. A difference does NOT fail the slice - it marks it 👀 "UI changed". You look
+(`npx playwright show-report`); `ojas build --approve <id>` makes the new look the baseline, or
+`--reopen <id> "…"` sends it back. A slice may never change a baseline itself (quality gate).
 
 ## 6 · Definition of done for Phase 1
 
