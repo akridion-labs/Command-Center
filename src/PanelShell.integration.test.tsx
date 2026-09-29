@@ -20,8 +20,10 @@ describe('PanelShell with NotBuilt integration', () => {
     const panel = await get('/api/test');
 
     expect(panel.built).toBe(false);
-    // @ts-expect-error - panel.why only exists when built is false
-    expect(panel.why).toBe('not permitted for your role');
+    // Using type guard to access why property safely
+    if (!panel.built) {
+      expect(panel.why).toBe('not permitted for your role');
+    }
   });
 
   it('should render built panel data correctly', async () => {
@@ -32,10 +34,12 @@ describe('PanelShell with NotBuilt integration', () => {
       json: async () => testData
     });
 
-    const panel = await get('/api/test');
+    const panel = await get<{value: string}>('/api/test');
 
     expect(panel.built).toBe(true);
-    // @ts-expect-error - panel.value only exists when built is true
-    expect(panel.value).toBe('test data');
+    // Using type guard to access value property safely
+    if (panel.built) {
+      expect(panel.value).toBe('test data');
+    }
   });
 });
