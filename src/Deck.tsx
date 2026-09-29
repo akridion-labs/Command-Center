@@ -3,6 +3,7 @@ import { get, type Panel } from './api'
 import { NotBuilt } from './NotBuilt'
 import { Panels } from './panels/Panels'
 import { AskBox } from './ask/AskBox'
+import { Background } from './scene/Background'
 import './design/deck.css'
 
 interface MeResponse {
@@ -70,6 +71,7 @@ export function Deck() {
   return (
     <>
       <div className="backdrop" />
+      <Background />
       <nav className="rail" aria-label="Sections">
         {SECTIONS.map(([k, label, glyph]) => (
           <a key={k} href={`#sec-${k}`} aria-label={label}><span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>{glyph}</span></a>
