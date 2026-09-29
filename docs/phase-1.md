@@ -449,7 +449,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 473 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 476 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
