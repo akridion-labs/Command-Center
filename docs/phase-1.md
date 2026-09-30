@@ -58,6 +58,10 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 12 | **self-check panel**: Vyom's own health + "what you owe" (reviews, packets, open steps) - the same facts as `ojas selfcheck`; test in `src/panels/SelfCheck.test.tsx` | needs a `/vyom/selfcheck` endpoint first (backend story) | ⬜ reopened: the /vyom/selfcheck endpoint exists now (brief section 8): render its rows | `npx vitest run src/panels/SelfCheck` 👀 shows NOT BUILT until the endpoint exists |
 | 12b | **end-to-end + visual tests** ☁: Playwright harness per §5.8 - every panel, the ask box and the tiles driven in a real browser against the BUILT app with `/vyom/*` mocked; `@visual` screenshots at 1280 and 1920; a test that fails on ANY request leaving localhost (intranet rule) | §5.8 | ⬜ | `npx playwright test --grep-invert @visual` 👀 `npx playwright show-report` - the first screenshots are the baseline you approve |
 | 13 | **conversational ask box**: follows the previous turn (like the `ojas` loop), and answers from a TOOL (self-check, weather) are labelled as such; tests in `src/ask/` | §6 | ⬜ | `npx vitest run src/ask` |
+| 20 | **doctor panel** ☁: Vyom's own errors, their cause and what to do, from `/vyom/doctor` (§8) - fixes stay `ojas doctor --fix`; tests in `src/panels/Doctor.test.tsx` | §8 | ⬜ | `npx vitest run src/panels/Doctor` 👀 `npm run dev`: a failing check shows its cause and the command |
+| 21 | **model console**: the installed local models + the brain's default + the build loop's evidence from `/vyom/models`, and the ask box can send a chosen `model` (§8); tests in `src/models/` | §8 | ⬜ | `npx vitest run src/models` 👀 one question asked with two different models |
+| 22 | **releases panel**: `./releases.json` (made by `ojas release`, shipped with the app) - versions, the slices in each, their test line; tests in `src/panels/Releases.test.tsx` | §8 | ⬜ | `npx vitest run src/panels/Releases` |
+| 23 | **design refresh** ☁: apply the design-scout findings YOU approved in `ojas web-review` (spacing, hierarchy, density) - the reference's colours and fonts stay | §8, §5.7 | ⬜ | `npm run build` 👀 screenshots before and after |
 
 **☁ and 👀 in the table (140).** ☁ in a slice = design-heavy: `ojas build` runs that one
 on your Claude plan, the rest on the local coder. 👀 in a PROOF = after the commands pass,
@@ -467,7 +471,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 507 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 559 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
@@ -870,6 +874,25 @@ ones after every slice. A difference does NOT fail the slice - it marks it 👀 
 and needs a named action list, a role check and an audit line **before** it runs.
 
 ---
+
+## 8 · Phase 2 - the Command Center as the operator's console (30 Sep 2026)
+
+Phase 1 is built (only the COO's sign-off and your looks remain). Phase 2 makes the deck the place
+you RUN Vyom from: its health and errors, its models, what shipped. Every endpoint below EXISTS
+(runbook 147) and follows the same rule as Phase 1: `built: false` + `why`, never an empty list.
+
+| endpoint | who | shape |
+|---|---|---|
+| `GET /vyom/selfcheck` | founder (admin) | `{built, at, rows: [{level: ok/warn/bad/owe, area, text, fix}]}` - the same facts as `ojas selfcheck` (slice 12 can now show real rows: reopen it) |
+| `GET /vyom/doctor` | founder (admin) | `{built, at, checks: [{name, ok, cause?, do?, detail?, fixed?}]}` - read-only here; fixing is `ojas doctor --fix` |
+| `GET /vyom/models` | health | `{built, default, models: [{name, default}], build_loop_evidence: {model: {calls, minutes, slices_ok, first_try}}}` - local models only, cloud tags never listed |
+| `POST /vyom/ask` | as today | `{question, mode, model?}` - `model` must be one of `/vyom/models`; anything else → `400 unknown_model` |
+| `/console/releases.json` | static file | `[{version, date, since, commits, slices: [{id, title, commit, date, tests}], fixes: [...], other: [...]}]` newest first |
+
+- Fetch through `api.ts` `get()` like every panel (401 → login, 403 → NOT BUILT "not permitted for your role").
+- A doctor check that is not ok shows its `cause` and the `do` command in monospace, copyable; `fixed: true` shows "fixed automatically".
+- The model picker lists `/vyom/models` names; the default is marked; the evidence table shows minutes and first-try %.
+- Releases read `./releases.json` relative to `/console/` - no API call, nothing external.
 
 ## 7 · How to drive the Dev Agent through this
 
