@@ -89,36 +89,44 @@ export function ActionsPanel() {
 export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
     <PanelShell title="Self-Check" panel={panel}>
-      {(p: Row) => (
-        <>
-          {p.own_health !== undefined && (
-            <div className="card-note">
-              Own health: {txt(p.own_health)}
-            </div>
-          )}
-          {p.owe !== undefined && (
-            <div className="eyebrow">What you owe</div>
-          )}
-          {p.reviews !== undefined && (
-            <div className="card-note">
-              Reviews: {txt(p.reviews)}
-            </div>
-          )}
-          {p.packets !== undefined && (
-            <div className="card-note">
-              Packets: {txt(p.packets)}
-            </div>
-          )}
-          {p.open_steps !== undefined && (
-            <div className="card-note">
-              Open steps: {txt(p.open_steps)}
-            </div>
-          )}
-          {p.attention !== undefined && (
-            <Items rows={list(p.attention)} empty="no attention items" />
-          )}
-        </>
-      )}
+      {(p: Row) => {
+        // Handle the case where we have data to display
+        if (p.built === true) {
+          return (
+            <>
+              {p.own_health !== undefined && (
+                <div className="card-note">
+                  Own health: {txt(p.own_health)}
+                </div>
+              )}
+              {(p.reviews !== undefined || p.packets !== undefined || p.open_steps !== undefined) && (
+                <div className="eyebrow">What you owe</div>
+              )}
+              {p.reviews !== undefined && (
+                <div className="card-note">
+                  Reviews: {txt(p.reviews)}
+                </div>
+              )}
+              {p.packets !== undefined && (
+                <div className="card-note">
+                  Packets: {txt(p.packets)}
+                </div>
+              )}
+              {p.open_steps !== undefined && (
+                <div className="card-note">
+                  Open steps: {txt(p.open_steps)}
+                </div>
+              )}
+              {p.attention !== undefined && (
+                <Items rows={list(p.attention)} empty="no attention items" />
+              )}
+            </>
+          )
+        }
+
+        // If not built, the PanelShell will render NotBuilt automatically
+        return null
+      }}
     </PanelShell>
   )
 }
