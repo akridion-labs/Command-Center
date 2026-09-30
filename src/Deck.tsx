@@ -4,6 +4,7 @@ import { NotBuilt } from './NotBuilt'
 import { Panels } from './panels/Panels'
 import { AskBox } from './ask/AskBox'
 import { Background } from './scene/Background'
+import { Tile } from './tiles'
 import './design/deck.css'
 
 interface MeResponse {
@@ -67,6 +68,8 @@ export function Deck() {
   const chunks = health?.built ? health.vault?.total_chunks : undefined
   const storage = quota?.built ? quota.storage : undefined
   const usage = quota?.built ? quota.usage : undefined
+  // Convenience, not security: the server still decides what each role may do.
+  const tiles = Object.entries(me?.options ?? {}).filter(([, on]) => Boolean(on))
 
   return (
     <>
@@ -135,6 +138,17 @@ export function Deck() {
             <NotBuilt panel={ABSENT('ask.py does not log duration yet')} />
           </Card>
         </div>
+
+        {tiles.length > 0 && (
+          <div className="cd-grid" role="region" aria-label="Tiles">
+            <div className="sp4 section-label" id="sec-tiles">Your tiles</div>
+            {tiles.map(([name, on]) => (
+              <Tile key={name} title={name} built>
+                <div className="card-note">{typeof on === 'string' ? on : 'available to your role'}</div>
+              </Tile>
+            ))}
+          </div>
+        )}
 
         <div className="cd-grid">
           <div className="sp4 section-label" id="sec-ask">Ask Vyom</div>

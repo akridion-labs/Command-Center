@@ -1,0 +1,13 @@
+{
+  "built": true,
+  "containers": [
+    {
+      "name": "web-server",
+      "status": "running"
+    },
+    {
+      "name": "db-server",
+      "status": "stopped"
+    }
+  ]
+}

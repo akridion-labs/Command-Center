@@ -1,0 +1,9 @@
+{
+  "user": "cto",
+  "verified": true,
+  "options": {
+    "deploys": true,
+    "models": true,
+    "work": false
+  }
+}
