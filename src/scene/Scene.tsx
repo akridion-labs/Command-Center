@@ -1,28 +1,20 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import type { Points } from 'three'
-
-const COUNT = 400
-const FPS = 24
+import { POINT_COUNT, startTicker } from './budget'
 
 function Field() {
   const ref = useRef<Points>(null)
   const invalidate = useThree((s) => s.invalidate)
   const positions = useMemo(() => {
-    const p = new Float32Array(COUNT * 3)
+    const p = new Float32Array(POINT_COUNT * 3)
     for (let i = 0; i < p.length; i++) p[i] = (Math.random() - 0.5) * 16
     return p
   }, [])
 
-  // frameloop="demand": drive a throttled tick ourselves, and stop it while the window is hidden
   useEffect(() => {
-    let timer: number | undefined
-    const start = () => { if (timer === undefined) timer = window.setInterval(invalidate, 1000 / FPS) }
-    const stop = () => { window.clearInterval(timer); timer = undefined }
-    const onVis = () => (document.hidden ? stop() : start())
-    onVis()
-    document.addEventListener('visibilitychange', onVis)
-    return () => { stop(); document.removeEventListener('visibilitychange', onVis) }
+    const cleanup = startTicker(invalidate)
+    return cleanup
   }, [invalidate])
 
   useFrame((_, dt) => {
@@ -42,6 +34,9 @@ function Field() {
 }
 
 export default function Scene() {
+  const [lost, setLost] = useState(false)
+  // A lost WebGL context (driver reset, GPU pressure from Ollama) removes the scene; the panels are untouched.
+  if (lost) return null
   return (
     <Canvas
       frameloop="demand"
@@ -50,6 +45,20 @@ export default function Scene() {
       gl={{ antialias: false, alpha: true, powerPreference: 'low-power' }}
       style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}
       aria-hidden="true"
+      onCreated={({ gl }) => {
+        // Add context loss handler
+        gl.domElement.addEventListener('webglcontextlost', (event) => {
+          event.preventDefault()
+          console.warn('background scene: WebGL context lost, scene removed')
+          setLost(true)
+        }, { once: true })
+
+        // Also handle webglcontextrestored if needed (though we just remove the scene)
+        gl.domElement.addEventListener('webglcontextrestored', () => {
+          // We don't restore - just remove the scene as requested
+          console.warn('background scene: WebGL context restored but scene removed')
+        })
+      }}
     >
       <Field />
     </Canvas>

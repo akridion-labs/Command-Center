@@ -1,19 +1,11 @@
-import { test, expect, type Page } from '@playwright/test'
-import { MODE, STUB_EMPTY_QUESTION, STUB_QUESTION, openConsole } from './deck'
+import { test, expect } from '@playwright/test'
+import { MODE, STUB_EMPTY_QUESTION, STUB_QUESTION, ask, openConsole } from './deck'
 
 // Needs the running deck (see playwright.config.ts) - and a session for a REAL answer (see e2e/deck.ts).
 // VYOM_E2E_QUESTION        a question the index has documents for
 // VYOM_E2E_EMPTY_QUESTION  a question the index has no documents for
 const QUESTION = process.env.VYOM_E2E_QUESTION ?? STUB_QUESTION
 const EMPTY_QUESTION = process.env.VYOM_E2E_EMPTY_QUESTION ?? (MODE === 'stubbed' ? STUB_EMPTY_QUESTION : undefined)
-
-async function ask(page: Page, q: string) {
-  const card = page.getByLabel('Ask Vyom')
-  await card.getByPlaceholder('Ask a question...').fill(q)
-  await card.getByRole('button', { name: 'Ask' }).click()
-  await expect(card.getByTestId('ask-answer')).toBeVisible({ timeout: 60_000 })
-  return card
-}
 
 test('TC-6-20: answering a question with sources raises zero CSP errors', async ({ page, baseURL }) => {
   const origin = new URL(baseURL!).origin
