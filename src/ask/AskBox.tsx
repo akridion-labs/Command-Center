@@ -1,49 +1,76 @@
 import { useState, type FormEvent } from 'react'
+import type { Panel } from '../api'
+import { NotBuilt } from '../NotBuilt'
 
-interface AskResponse {
-  answer: string
-  sources: Array<{
-    title: string
-    url: string
-    snippet: string
-  }>
+export interface Source {
+  title: string
+  url: string
+  snippet: string
 }
 
-export function AskBox() {
+export interface AskResult {
+  answer: string
+  sources: Source[]
+}
+
+interface AskBoxProps {
+  /** Where a 401 sends the browser; injectable so tests can observe it. */
+  redirect?: (url: string) => void
+}
+
+function goTo(url: string) {
+  location.href = url
+}
+
+const wrap = { overflowWrap: 'anywhere', wordBreak: 'break-word', minWidth: 0 } as const
+
+// Same status mapping as api.ts `get`, for a POST.
+async function ask(query: string, redirect: (url: string) => void): Promise<Panel<AskResult> | null> {
+  const r = await fetch('/vyom/ask', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query }),
+  })
+  if (r.status === 401) { redirect('/vyom/login'); return null }
+  if (r.status === 403) return { built: false, why: 'not permitted for your role' }
+  if (r.status === 501) return { built: false, why: 'not implemented yet' }
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  const data = await r.json()
+  if (data && data.built === false) return { built: false, why: data.why || 'not implemented yet' }
+  return {
+    built: true,
+    answer: typeof data?.answer === 'string' ? data.answer : '',
+    sources: Array.isArray(data?.sources) ? data.sources : [],
+  }
+}
+
+export function AskBox({ redirect = goTo }: AskBoxProps) {
   const [query, setQuery] = useState('')
-  const [response, setResponse] = useState<AskResponse | null>(null)
+  const [result, setResult] = useState<Panel<AskResult> | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!query.trim()) return
+    if (!query.trim() || loading) return
 
     setLoading(true)
     setError(null)
+    setResult(null)
 
     try {
-      const response = await fetch('/vyom/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-
-      const data = await response.json()
-      setResponse(data)
+      setResult(await ask(query, redirect))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get answer')
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg.startsWith('HTTP ') ? msg : `network failure (${msg})`)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="card sp2" aria-label="Ask Vyom">
+    <div className="card sp2" aria-label="Ask Vyom" style={{ minWidth: 0, overflow: 'hidden' }}>
       <div className="card-title">Ask Vyom</div>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <input
@@ -64,34 +91,48 @@ export function AskBox() {
       </form>
 
       {error && (
-        <div className="card-note" style={{ color: '#ff4b33' }}>
+        <div className="card-note" role="alert" style={{ color: '#ff4b33', ...wrap }}>
           Error: {error}
         </div>
       )}
 
-      {response && (
-        <div style={{ marginTop: 12 }}>
-          <div className="card-value" style={{ fontSize: 16, lineHeight: 1.5 }}>
-            {response.answer}
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <h4 style={{ margin: '8px 0 4px 0', fontSize: 12, fontWeight: 700, color: '#39c6ff' }}>Sources</h4>
-            {response.sources.map((source, index) => (
-              <div key={index} style={{ marginBottom: 8 }}>
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#39c6ff', textDecoration: 'underline' }}
-                >
-                  {source.title}
-                </a>
-                <p style={{ margin: '4px 0 0 0', fontSize: 12, color: '#8695a8' }}>
-                  {source.snippet}
-                </p>
+      {result && (
+        <div style={{ marginTop: 12, ...wrap }}>
+          {!result.built ? (
+            <NotBuilt panel={result} />
+          ) : (
+            <>
+              <div className="card-value" data-testid="ask-answer" style={{ fontSize: 16, lineHeight: 1.5, ...wrap }}>
+                {result.answer}
               </div>
-            ))}
-          </div>
+              <div style={{ marginTop: 12 }}>
+                {result.sources.length > 0 ? (
+                  <>
+                    <h4 style={{ margin: '8px 0 4px 0', fontSize: 12, fontWeight: 700, color: '#39c6ff' }}>Sources</h4>
+                    <ol data-testid="ask-sources" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                      {result.sources.map((source, index) => (
+                        <li key={`${index}:${source.url}`} style={{ marginBottom: 8, ...wrap }}>
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: '#39c6ff', textDecoration: 'underline', ...wrap }}
+                          >
+                            {source.title?.trim() ? source.title : source.url}
+                          </a>
+                          <p style={{ margin: '4px 0 0 0', fontSize: 12, color: '#8695a8', ...wrap }}>
+                            {source.snippet}
+                          </p>
+                        </li>
+                      ))}
+                    </ol>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 12, color: '#8695a8' }}>no sources returned</p>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
