@@ -67,7 +67,15 @@ async function stubDeck(context: BrowserContext, origin: string) {
   })
 }
 
-export async function openConsole(page: Page, origin: string) {
+export async function ask(page: Page, q: string) {
+  const card = page.getByLabel('Ask Vyom')
+  await card.getByPlaceholder('Ask a question...').fill(q)
+  await card.getByRole('button', { name: 'Ask' }).click()
+  await expect(card.getByTestId('ask-answer')).toBeVisible({ timeout: 60_000 })
+  return card
+}
+
+export async function openConsole(page: Page, origin: string, waitUntil: 'load' | 'domcontentloaded' = 'load') {
   test.info().annotations.push({ type: 'deck', description: MODE })
   if (MODE === 'stubbed') await stubDeck(page.context(), origin)
   if (MODE === 'login') {
@@ -77,6 +85,6 @@ export async function openConsole(page: Page, origin: string) {
     await page.getByRole('button', { name: 'Sign in' }).click()
     await page.waitForLoadState('networkidle')
   }
-  await page.goto('/console/')
+  await page.goto('/console/', { waitUntil })
   await expect(page, 'no logged-in session: set VYOM_E2E_STORAGE or VYOM_E2E_USER/VYOM_E2E_PASSWORD').not.toHaveURL(/\/vyom\/login/)
 }
