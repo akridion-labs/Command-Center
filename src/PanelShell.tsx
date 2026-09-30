@@ -12,7 +12,7 @@ export function PanelShell<T>({ panel, title, children }: PanelProps<T>) {
   if (panel === null) {
     return (
       <div className="panel">
-        <h2>{title}</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 12px 0', color: '#e7edf5' }}>{title}</h2>
         <div className="card-note">loading…</div>
       </div>
     );
@@ -21,7 +21,7 @@ export function PanelShell<T>({ panel, title, children }: PanelProps<T>) {
   if (!panel.built) {
     return (
       <div className="panel">
-        <h2>{title}</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 12px 0', color: '#e7edf5' }}>{title}</h2>
         <NotBuilt panel={panel} />
       </div>
     );
@@ -31,7 +31,7 @@ export function PanelShell<T>({ panel, title, children }: PanelProps<T>) {
   if (children && typeof children === 'function') {
     return (
       <div className="panel">
-        <h2>{title}</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 12px 0', color: '#e7edf5' }}>{title}</h2>
         {children(panel)}
       </div>
     );
@@ -39,7 +39,7 @@ export function PanelShell<T>({ panel, title, children }: PanelProps<T>) {
 
   return (
     <div className="panel">
-      <h2>{title}</h2>
+      <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 12px 0', color: '#e7edf5' }}>{title}</h2>
       {children}
     </div>
   );
