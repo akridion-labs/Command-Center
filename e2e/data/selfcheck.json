@@ -1,0 +1,10 @@
+{
+  "built": true,
+  "own_health": "all checks green",
+  "reviews": 3,
+  "packets": 1,
+  "open_steps": 2,
+  "attention": [
+    { "title": "Approve slice 12b screenshots" }
+  ]
+}

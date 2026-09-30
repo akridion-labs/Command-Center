@@ -1,0 +1,16 @@
+{
+  "built": true,
+  "answer": "The answer to your question is that we should focus on improving the system's performance and security.",
+  "sources": [
+    {
+      "title": "Performance Analysis Report",
+      "url": "http://localhost:8765/reports/performance",
+      "snippet": "Key findings from the performance analysis show significant improvements can be made in memory usage..."
+    },
+    {
+      "title": "Security Audit Results",
+      "url": "http://localhost:8765/security/audit",
+      "snippet": "The security audit revealed several vulnerabilities that need immediate attention..."
+    }
+  ]
+}
