@@ -5,6 +5,7 @@ import { Panels } from './panels/Panels'
 import { AskBox } from './ask/AskBox'
 import { Background } from './scene/Background'
 import { Tile } from './tiles'
+import { ModelsSection } from './models/Models'
 import './design/deck.css'
 
 interface MeResponse {
@@ -14,6 +15,12 @@ interface MeResponse {
 
 interface Health { model?: string; vault?: { total_chunks?: number } }
 interface Quota { storage?: { size?: string; chunks?: number; index_age?: string }; usage?: { built?: boolean; why?: string } }
+interface ModelsResponse {
+  built: boolean
+  default: string
+  models: { name: string; default: boolean }[]
+  build_loop_evidence: Record<string, { calls: number; minutes: number; slices_ok: number; first_try: number }>
+}
 
 const ABSENT = (why: string): Panel<never> => ({ built: false, why })
 const SECTIONS = [
@@ -50,6 +57,7 @@ export function Deck() {
   const [health, setHealth] = useState<Panel<Health> | null>(null)
   const [quota, setQuota] = useState<Panel<Quota> | null>(null)
   const [me, setMe] = useState<MeResponse | null>(null)
+  const [models, setModels] = useState<Panel<ModelsResponse> | null>(null)
   const [range, setRange] = useState('24h')
 
   useEffect(() => {
@@ -62,12 +70,14 @@ export function Deck() {
         setMe(null)
       }
     }).catch(() => setMe(null))
+    get<ModelsResponse>('/vyom/models').then(setModels).catch(() => setModels({ built: false, why: 'models unreachable' }))
   }, [])
 
   const model = health?.built ? health.model : undefined
   const chunks = health?.built ? health.vault?.total_chunks : undefined
   const storage = quota?.built ? quota.storage : undefined
   const usage = quota?.built ? quota.usage : undefined
+  const modelNames = models?.built ? models.models.map(m => m.name) : []
   // Convenience, not security: the server still decides what each role may do.
   const tiles = Object.entries(me?.options ?? {}).filter(([, on]) => Boolean(on))
 
@@ -152,7 +162,7 @@ export function Deck() {
 
         <div className="cd-grid">
           <div className="sp4 section-label" id="sec-ask">Ask Vyom</div>
-          <AskBox />
+          <AskBox models={modelNames} />
         </div>
 
         {me?.config_problem && (
@@ -166,6 +176,8 @@ export function Deck() {
             </div>
           </div>
         )}
+
+        <ModelsSection />
 
         <Panels />
       </div>

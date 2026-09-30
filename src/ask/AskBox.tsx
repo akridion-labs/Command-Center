@@ -16,6 +16,7 @@ export interface AskResult {
 interface AskBoxProps {
   /** Where a 401 sends the browser; injectable so tests can observe it. */
   redirect?: (url: string) => void
+  models?: string[] // Available models for selection
 }
 
 function goTo(url: string) {
@@ -25,12 +26,12 @@ function goTo(url: string) {
 const wrap = { overflowWrap: 'anywhere', wordBreak: 'break-word', minWidth: 0 } as const
 
 // Same status mapping as api.ts `get`, for a POST.
-async function ask(query: string, redirect: (url: string) => void): Promise<Panel<AskResult> | null> {
+async function ask(query: string, model: string | undefined, redirect: (url: string) => void): Promise<Panel<AskResult> | null> {
   const r = await fetch('/vyom/ask', {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query, model }),
   })
   if (r.status === 401) { redirect('/vyom/login'); return null }
   if (r.status === 403) return { built: false, why: 'not permitted for your role' }
@@ -45,8 +46,9 @@ async function ask(query: string, redirect: (url: string) => void): Promise<Pane
   }
 }
 
-export function AskBox({ redirect = goTo }: AskBoxProps) {
+export function AskBox({ redirect = goTo, models }: AskBoxProps) {
   const [query, setQuery] = useState('')
+  const [model, setModel] = useState<string | undefined>(undefined)
   const [result, setResult] = useState<Panel<AskResult> | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,7 +62,7 @@ export function AskBox({ redirect = goTo }: AskBoxProps) {
     setResult(null)
 
     try {
-      setResult(await ask(query, redirect))
+      setResult(await ask(query, model, redirect))
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setError(msg.startsWith('HTTP ') ? msg : `network failure (${msg})`)
@@ -81,6 +83,19 @@ export function AskBox({ redirect = goTo }: AskBoxProps) {
           disabled={loading}
           style={{ padding: '8px 12px', borderRadius: 4, border: '1px solid #39c6ff', background: 'rgba(57,198,255,.1)', color: '#fff' }}
         />
+        {models && models.length > 0 && (
+          <select
+            value={model || ''}
+            onChange={(e) => setModel(e.target.value || undefined)}
+            disabled={loading}
+            style={{ padding: '8px 12px', borderRadius: 4, border: '1px solid #39c6ff', background: 'rgba(57,198,255,.1)', color: '#fff' }}
+          >
+            <option value="">Select a model</option>
+            {models.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        )}
         <button
           type="submit"
           disabled={loading || !query.trim()}
