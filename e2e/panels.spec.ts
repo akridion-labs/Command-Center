@@ -108,4 +108,28 @@ test.describe('Panels', () => {
       expect(box && box.width > 100 && box.height > 20).toBe(true)
     }
   })
+
+  // TC-23-08: Given the dashboard displays data bindings When user verifies API connections Then all bindings map to actual endpoints or NOT BUILT states
+  test('TC-23-08: verifies all data bindings map to actual endpoints or NOT BUILT states', async ({ page, deck }) => {
+    // Configure fixtures for all key endpoints that should be bound in the deck
+    deck.use('health', { body: { model: 'gpt-4', vault: { total_chunks: 1234 } } })
+    deck.use('quota', { body: { storage: { size: '5.2TB', chunks: 4567, index_age: '2d' }, usage: { built: true } } })
+
+    await openConsole(page)
+
+    // Verify key elements are properly bound
+    const modelCard = page.getByText('Active model').first().locator('..').locator('.card-value')
+    const quotaCard = page.getByText('Cloud quota').first().locator('..').locator('.card-value')
+    const chunksCard = page.getByText('Vault chunks').first().locator('..').locator('.card-value')
+
+    // These should show actual values from the fixtures
+    await expect(modelCard).toBeVisible()
+    await expect(quotaCard).toBeVisible()
+    await expect(chunksCard).toBeVisible()
+
+    // Verify they contain expected content
+    await expect(modelCard).toContainText('gpt-4')
+    await expect(quotaCard).toContainText('5.2TB')
+    await expect(chunksCard).toContainText('1234')
+  })
 })

@@ -81,20 +81,20 @@ export function Deck() {
         ))}
       </nav>
       <div className="deck">
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 24 }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', marginBottom: 32 }}>
           <div>
-            <h1 style={{ fontSize: 20, margin: 0, letterSpacing: 5, fontWeight: 700 }}>AKRIDION <span style={{ color: '#ff4b33' }}>VYOM</span></h1>
-            <small style={{ display: 'block', color: '#8695a8', letterSpacing: 2.5, fontSize: 11, marginTop: 2 }}>OJAS · COMMAND DECK</small>
+            <h1 style={{ fontSize: 24, margin: 0, letterSpacing: 5, fontWeight: 700 }}>AKRIDION <span style={{ color: '#ff4b33' }}>VYOM</span></h1>
+            <small style={{ display: 'block', color: '#8695a8', letterSpacing: 2.5, fontSize: 12, marginTop: 4 }}>OJAS · COMMAND DECK</small>
           </div>
-          <span className="pillgroup" style={{ alignItems: 'center', gap: 8, padding: '6px 14px', color: '#39d98a', fontSize: 13, fontWeight: 600 }}>
+          <span className="pillgroup" style={{ alignItems: 'center', gap: 10, padding: '8px 16px', color: '#39d98a', fontSize: 14, fontWeight: 600 }}>
             <span className="livedot" />
             {health?.built ? 'Brain online' : 'Brain status unknown'}
           </span>
         </header>
 
         <div className="stickybar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span className="eyebrow" style={{ margin: 0 }}>Window</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span className="eyebrow" style={{ margin: 0, fontSize: 12 }}>Window</span>
             <span className="pillgroup">
               {['1h', '24h', '7d', '30d'].map((r) => (
                 <button key={r} className="pill" aria-pressed={r === range} onClick={() => setRange(r)}>{r}</button>
@@ -103,18 +103,18 @@ export function Deck() {
           </div>
         </div>
 
-        <div id="sec-top" style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 12 }}>
-          <div className="glass" style={{ flex: 2, minWidth: 280, padding: '14px 16px' }}>
-            <div className="eyebrow">Ojas brief · {range}</div>
+        <div id="sec-top" style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 24 }}>
+          <div className="glass" style={{ flex: 2, minWidth: 280, padding: '16px 20px' }}>
+            <div className="eyebrow" style={{ fontSize: 12 }}>Ojas brief · {range}</div>
             <NotBuilt panel={ABSENT('no brief endpoint yet')} />
           </div>
         </div>
 
-        <section aria-label="Core reactor" className="glass reactor" style={{ borderRadius: 18 }}>
+        <section aria-label="Core reactor" className="glass reactor" style={{ borderRadius: 20, padding: 32, marginBottom: 24 }}>
           <div className="scanline" />
           <div className="reactor-row">
             <Gauge label="GPU" unit="VRAM" />
-            <div className="orb"><span style={{ fontSize: 10, letterSpacing: 3, color: '#8695a8' }}>OJAS CORE</span></div>
+            <div className="orb"><span style={{ fontSize: 11, letterSpacing: 3, color: '#8695a8' }}>OJAS CORE</span></div>
             <Gauge label="SYSTEM" unit="RAM" />
           </div>
         </section>
@@ -122,7 +122,7 @@ export function Deck() {
         <div className="cd-grid">
           <div className="sp4 section-label" id="sec-health">Infrastructure &amp; Brain Health</div>
           <Card title="Active model" badge="routing">
-            {model ? <div className="card-value mono" style={{ fontSize: 24 }}>{model}</div> : <NotBuilt panel={ABSENT('model not reported by /vyom/health')} />}
+            {model ? <div className="card-value mono" style={{ fontSize: 26 }}>{model}</div> : <NotBuilt panel={ABSENT('model not reported by /vyom/health')} />}
           </Card>
           <Card title="Cloud quota" badge="glm">
             {storage ? <div className="card-value">{storage.size ?? '-'}</div> : <NotBuilt panel={ABSENT('no quota data')} />}
