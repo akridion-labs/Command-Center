@@ -1,11 +1,11 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ModelsPanel } from './Models'
 
 describe('ModelsPanel', () => {
   it('TC-21-03: renders model information correctly when built=true', async () => {
     const mockPanel = {
-      built: true,
+      built: true as const,
       default: 'gpt-4',
       models: [
         { name: 'gpt-4', default: true },
@@ -31,7 +31,7 @@ describe('ModelsPanel', () => {
 
   it('TC-21-03: shows not built message when built=false', async () => {
     const mockPanel = {
-      built: false,
+      built: false as const,
       why: 'not implemented yet'
     }
 

@@ -1,0 +1,19 @@
+[
+  {
+    "version": "1.0.0",
+    "date": "2026-09-30",
+    "since": "Initial release",
+    "commits": ["Initial commit"],
+    "slices": [
+      {
+        "id": "slice-1",
+        "title": "Initial setup",
+        "commit": "abc123",
+        "date": "2026-09-30",
+        "tests": 5
+      }
+    ],
+    "fixes": [],
+    "other": []
+  }
+]

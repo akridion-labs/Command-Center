@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { get, type Panel } from '../api'
 import { PanelShell } from '../PanelShell'
-import { NotBuilt } from '../NotBuilt'
 
 interface Model {
   name: string
@@ -16,7 +15,6 @@ interface BuildLoopEvidence {
 }
 
 interface ModelsResponse {
-  built: boolean
   default: string
   models: Model[]
   build_loop_evidence: Record<string, BuildLoopEvidence>
@@ -25,7 +23,7 @@ interface ModelsResponse {
 export function ModelsPanel({ panel }: { panel: Panel<ModelsResponse> | null }) {
   return (
     <PanelShell title="Models" panel={panel}>
-      {(p: ModelsResponse) => {
+      {(p: Panel<ModelsResponse>) => {
         if (p.built === true) {
           return (
             <>

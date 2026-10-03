@@ -453,7 +453,7 @@ describe('AskBox', () => {
     render(<AskBox models={['gpt-4', 'claude-3']} />)
 
     // Should have options for each model
-    const select = screen.getByRole('combobox')
+    const select = screen.getByRole('combobox') as HTMLSelectElement
     expect(select).toBeTruthy()
 
     // Select a model
