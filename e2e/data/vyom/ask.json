@@ -1,0 +1,11 @@
+{
+  "built": true,
+  "answer": "This is a sample answer to the question asked.",
+  "sources": [
+    {
+      "title": "Sample Source",
+      "url": "https://example.com/sample",
+      "snippet": "This is a snippet from the sample source."
+    }
+  ]
+}

@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { get, type Panel } from '../api'
 import { PanelShell } from '../PanelShell'
 
-interface Model {
+export interface Model {
   name: string
   default: boolean
 }
 
-interface BuildLoopEvidence {
+export interface BuildLoopEvidence {
   calls: number
   minutes: number
   slices_ok: number
@@ -65,23 +65,24 @@ export function ModelsPanel({ panel }: { panel: Panel<ModelsResponse> | null }) 
   );
 }
 
-function useModelsEndpoint(): Panel<ModelsResponse> | null {
-  const [panel, setPanel] = useState<Panel<ModelsResponse> | null>(null);
-  useEffect(() => {
-    let live = true;
-    get<ModelsResponse>('/vyom/models').then((p) => live && setPanel(p)).catch(() => live && setPanel({ built: false, why: '/vyom/models unreachable' }));
-    return () => { live = false }
-  }, []);
-  return panel;
+interface ModelsResponse {
+  built: boolean
+  default: string
+  models: Model[]
+  build_loop_evidence: Record<string, BuildLoopEvidence>
 }
 
 export function ModelsSection() {
-  const panel = useModelsEndpoint();
-
+  const [panel, setPanel] = useState<Panel<ModelsResponse> | null>(null)
+  useEffect(() => {
+    let live = true
+    get<ModelsResponse>('/vyom/models').then((p) => live && setPanel(p)).catch(() => live && setPanel({ built: false, why: '/vyom/models unreachable' }))
+    return () => { live = false }
+  }, [])
   return (
     <div className="cd-grid">
       <div className="sp4 section-label" id="sec-models">Models</div>
       <ModelsPanel panel={panel} />
     </div>
-  );
+  )
 }

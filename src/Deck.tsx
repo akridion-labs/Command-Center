@@ -5,7 +5,7 @@ import { Panels } from './panels/Panels'
 import { AskBox } from './ask/AskBox'
 import { Background } from './scene/Background'
 import { Tile } from './tiles'
-import { ModelsSection } from './models/Models'
+import { ModelsSection, type Model, type BuildLoopEvidence } from './models/Models'
 import './design/deck.css'
 
 interface MeResponse {
@@ -18,8 +18,8 @@ interface Quota { storage?: { size?: string; chunks?: number; index_age?: string
 interface ModelsResponse {
   built: boolean
   default: string
-  models: { name: string; default: boolean }[]
-  build_loop_evidence: Record<string, { calls: number; minutes: number; slices_ok: number; first_try: number }>
+  models: Model[]
+  build_loop_evidence: Record<string, BuildLoopEvidence>
 }
 
 const ABSENT = (why: string): Panel<never> => ({ built: false, why })
@@ -77,6 +77,8 @@ export function Deck() {
   const chunks = health?.built ? health.vault?.total_chunks : undefined
   const storage = quota?.built ? quota.storage : undefined
   const usage = quota?.built ? quota.usage : undefined
+
+  const defaultModel = models?.built ? models.default : ''
   const modelNames = models?.built ? models.models.map(m => m.name) : []
   // Convenience, not security: the server still decides what each role may do.
   const tiles = Object.entries(me?.options ?? {}).filter(([, on]) => Boolean(on))
@@ -162,7 +164,7 @@ export function Deck() {
 
         <div className="cd-grid">
           <div className="sp4 section-label" id="sec-ask">Ask Vyom</div>
-          <AskBox models={modelNames} />
+          <AskBox models={modelNames} defaultModel={defaultModel} />
         </div>
 
         {me?.config_problem && (

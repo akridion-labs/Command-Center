@@ -17,6 +17,7 @@ interface AskBoxProps {
   /** Where a 401 sends the browser; injectable so tests can observe it. */
   redirect?: (url: string) => void
   models?: string[] // Available models for selection
+  defaultModel?: string // The model selected by default when no model is chosen
 }
 
 function goTo(url: string) {

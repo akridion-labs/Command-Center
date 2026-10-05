@@ -1,0 +1,20 @@
+{
+  "built": true,
+  "checks": [
+    {
+      "name": "System health",
+      "ok": true,
+      "fixed": false
+    },
+    {
+      "name": "Index freshness",
+      "ok": true,
+      "fixed": false
+    },
+    {
+      "name": "GPU memory",
+      "ok": true,
+      "fixed": false
+    }
+  ]
+}

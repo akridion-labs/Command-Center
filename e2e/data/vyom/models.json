@@ -1,0 +1,38 @@
+{
+  "built": true,
+  "default": "gpt-4",
+  "models": [
+    {
+      "name": "gpt-4",
+      "default": true
+    },
+    {
+      "name": "claude-3",
+      "default": false
+    },
+    {
+      "name": "llama-2",
+      "default": false
+    }
+  ],
+  "build_loop_evidence": {
+    "gpt-4": {
+      "calls": 100,
+      "minutes": 50,
+      "slices_ok": 95,
+      "first_try": 87
+    },
+    "claude-3": {
+      "calls": 80,
+      "minutes": 40,
+      "slices_ok": 90,
+      "first_try": 75
+    },
+    "llama-2": {
+      "calls": 120,
+      "minutes": 60,
+      "slices_ok": 85,
+      "first_try": 60
+    }
+  }
+}

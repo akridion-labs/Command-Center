@@ -5,7 +5,7 @@ import { test as base, expect, type Page } from '@playwright/test'
 // Every /vyom/* request is answered here from e2e/data/<name>.json (BUILT) or <name>-not-built.json.
 // Nothing reaches a live deck or the internet: unknown /vyom paths are aborted and fail the test,
 // and any non-local request is aborted and recorded for the intranet check.
-export const ENDPOINTS = ['health', 'tasks', 'agents', 'quota', 'containers', 'selfcheck', 'me', 'ask'] as const
+export const ENDPOINTS = ['health', 'tasks', 'agents', 'quota', 'containers', 'selfcheck', 'me', 'ask', 'doctor', 'models'] as const
 export type Endpoint = (typeof ENDPOINTS)[number]
 
 export type Reply =

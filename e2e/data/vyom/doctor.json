@@ -1,0 +1,29 @@
+{
+  "built": true,
+  "checks": [
+    {
+      "name": "api-health",
+      "ok": true,
+      "cause": null,
+      "do": null,
+      "detail": "All API services are healthy",
+      "fixed": false
+    },
+    {
+      "name": "model-connectivity",
+      "ok": true,
+      "cause": null,
+      "do": null,
+      "detail": "Model connections established",
+      "fixed": false
+    },
+    {
+      "name": "memory-usage",
+      "ok": false,
+      "cause": "GPU memory near capacity",
+      "do": "ollama serve --memory 8GB",
+      "detail": "Memory usage at 85% of allocated VRAM",
+      "fixed": false
+    }
+  ]
+}
