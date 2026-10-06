@@ -8,7 +8,7 @@ import { Tile } from './tiles'
 import { ModelsSection, type ModelsResponse } from './models/Models'
 import './design/deck.css'
 
-interface Release {
+export interface Release {
   version: string
   date: string
   since: string

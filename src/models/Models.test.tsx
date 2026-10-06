@@ -159,6 +159,7 @@ describe('Model console', () => {
     vi.stubGlobal('navigator', { clipboard: { writeText } })
     render(<DoctorPanel panel={{
       built: true,
+      at: '2026-09-30T08:00:00Z',
       checks: [
         { name: 'ollama reachable', ok: true },
         { name: 'vault index', ok: true, fixed: true, detail: 'stale lock removed' },
