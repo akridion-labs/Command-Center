@@ -63,7 +63,7 @@ function Gauge({ label, unit }: { label: string; unit: string }) {
 
 export function Deck() {
   const [health, setHealth] = useState<Panel<Health> | null>(null)
-  const [me, setMe] = useState<MeResponse | null>(null)
+  const [me, setMe] = useState<Panel<MeResponse> | null>(null)
   const [models, setModels] = useState<Panel<ModelsResponse> | null>(null)
   const [releases, setReleases] = useState<Panel<{ releases: Release[] }> | null>(null)
   const [range, setRange] = useState('24h')
@@ -97,9 +97,10 @@ export function Deck() {
       if (response.built) {
         setMe(response)
       } else {
-        setMe(null)
+        // We need to create a proper Panel<MeResponse> for the state
+        setMe({ built: false, why: '/vyom/me unreachable' })
       }
-    }).catch(() => setMe(null))
+    }).catch(() => setMe({ built: false, why: '/vyom/me unreachable' }))
     loadModels()
     loadReleases()
   }, [loadModels, loadReleases])
@@ -111,7 +112,7 @@ export function Deck() {
   const defaultModel = models?.built ? models.default : ''
   const modelNames = models?.built ? models.models.map(m => m.name) : []
   // Convenience, not security: the server still decides what each role may do.
-  const tiles = Object.entries(me?.options ?? {}).filter(([, on]) => Boolean(on))
+  const tiles = me?.built ? Object.entries(me.options ?? {}).filter(([, on]) => Boolean(on)) : []
 
   return (
     <>
@@ -193,20 +194,8 @@ export function Deck() {
 
         <div className="cd-grid">
           <div className="sp4 section-label" id="sec-ask">Ask Vyom</div>
-          <AskBox models={modelNames} defaultModel={defaultModel} />
+          <AskBox models={modelNames} defaultModel={defaultModel} configProblem={me?.built ? me.config_problem || null : null} />
         </div>
-
-        {me?.config_problem && (
-          <div className="cd-grid">
-            <div className="sp4 section-label" id="sec-config">Configuration Problem</div>
-            <div className="card sp2" aria-label="Config Problem">
-              <div className="card-title">Config Problem</div>
-              <div className="card-note" style={{ color: '#ff4b33' }}>
-                {me.config_problem}
-              </div>
-            </div>
-          </div>
-        )}
 
         <ModelsSection panel={models} onRetry={loadModels} />
 

@@ -51,7 +51,12 @@ test.describe('Model console', () => {
       await box.getByRole('button', { name: 'Ask' }).click()
       await expect(box.getByTestId('ask-answer')).toBeVisible()
     }
-    expect(posted(deck)).toEqual([{ query: question, model: 'qwen2.5-coder:14b' }, { query: question, model: 'llama3.1:8b' }])
+    // Story 13 AC5: the second ask is a follow-up, so it also carries the previous turn.
+    const answer = (data('ask.json') as { answer: string }).answer
+    expect(posted(deck)).toEqual([
+      { query: question, model: 'qwen2.5-coder:14b' },
+      { query: question, model: 'llama3.1:8b', history: [{ query: question, answer }] },
+    ])
   })
 
   test('TC-21-09: Given selfcheck, doctor and models NOT BUILT When the console opens Then each shows NOT BUILT with its own why', async ({ page, deck }) => {
