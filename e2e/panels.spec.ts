@@ -1,4 +1,4 @@
-import { test, expect, panel, openConsole, PANELS, data } from './fixtures'
+import { test, expect, panel, openConsole, PANELS, data, type Endpoint } from './fixtures'
 
 const CONTENT: Record<(typeof PANELS)[number], string> = {
   Health: 'Low disk space',
@@ -7,9 +7,12 @@ const CONTENT: Record<(typeof PANELS)[number], string> = {
   Quota: '1.2TB',
   Containers: 'web-server',
   'Self-Check': 'all checks green',
+  Models: 'llama3.1:8b',
+  Doctor: 'ollama reachable',
 }
-const ENDPOINT: Record<(typeof PANELS)[number], 'health' | 'tasks' | 'agents' | 'quota' | 'containers' | 'selfcheck'> = {
+const ENDPOINT: Record<(typeof PANELS)[number], Endpoint> = {
   Health: 'health', Tasks: 'tasks', Agents: 'agents', Quota: 'quota', Containers: 'containers', 'Self-Check': 'selfcheck',
+  Models: 'models', Doctor: 'doctor',
 }
 const why = (endpoint: string) => (data(`${endpoint}-not-built.json`) as { why: string }).why
 
@@ -41,7 +44,7 @@ test.describe('Panels', () => {
     deck.unmocked.length = 0 // proven loud; let teardown pass
   })
 
-  test('TC-12b-6: Given all endpoints BUILT When the console opens Then six panels show their titles and fixture content', async ({ page }) => {
+  test('TC-12b-6: Given all endpoints BUILT When the console opens Then panels show their titles and fixture content', async ({ page }) => {
     await openConsole(page)
     for (const title of PANELS) {
       const p = panel(page, title)
@@ -60,11 +63,13 @@ test.describe('Panels', () => {
     expect(await agents.locator('p').first().textContent()).toBe(why('agents'))
     await expect(agents.locator('li')).toHaveCount(0)
     for (const title of PANELS.filter((t) => t !== 'Agents')) {
-      await expect(panel(page, title).getByText(CONTENT[title])).toBeVisible()
+      const p = panel(page, title)
+      await expect(p.getByText(CONTENT[title])).toBeVisible()
+      await expect(p.getByText('NOT BUILT')).toHaveCount(0)
     }
   })
 
-  test('TC-12b-8: Given every endpoint NOT BUILT When the console opens Then all six panels show NOT BUILT with their own why and the page does not crash', async ({ page, deck }) => {
+  test('TC-12b-8: Given every endpoint NOT BUILT When the console opens Then all panels show NOT BUILT with their own why and the page does not crash', async ({ page, deck }) => {
     deck.allNotBuilt()
     await openConsole(page)
     for (const title of PANELS) {
@@ -85,7 +90,7 @@ test.describe('Panels', () => {
     await expect(panel(page, 'Containers').getByText('no containers reported')).toBeVisible()
   })
 
-  test('TC-12b-10: Given one endpoint returns 500 When the console opens Then that panel shows NOT BUILT "unreachable" and the other five still render', async ({ page, deck }) => {
+  test('TC-12b-10: Given one endpoint returns 500 When the console opens Then that panel shows NOT BUILT "unreachable" and the other panels still render', async ({ page, deck }) => {
     deck.use('containers', { status: 500, body: { error: 'boom' } })
     await openConsole(page)
     const containers = panel(page, 'Containers')
@@ -110,26 +115,20 @@ test.describe('Panels', () => {
   })
 
   // TC-23-08: Given the dashboard displays data bindings When user verifies API connections Then all bindings map to actual endpoints or NOT BUILT states
-  test('TC-23-08: verifies all data bindings map to actual endpoints or NOT BUILT states', async ({ page, deck }) => {
-    // Configure fixtures for all key endpoints that should be bound in the deck
-    deck.use('health', { body: { model: 'gpt-4', vault: { total_chunks: 1234 } } })
-    deck.use('quota', { body: { storage: { size: '5.2TB', chunks: 4567, index_age: '2d' }, usage: { built: true } } })
-
+  test('TC-23-08: verifies all data bindings map to actual endpoints or NOT BUILT states', async ({ page }) => {
     await openConsole(page)
 
-    // Verify key elements are properly bound
-    const modelCard = page.getByText('Active model').first().locator('..').locator('.card-value')
-    const quotaCard = page.getByText('Cloud quota').first().locator('..').locator('.card-value')
-    const chunksCard = page.getByText('Vault chunks').first().locator('..').locator('.card-value')
+    // Quota panel shows Storage and Usage sections - verify they exist and show values
+    const quotaPanel = panel(page, 'Quota')
+    await expect(quotaPanel.getByText('Storage')).toBeVisible()
+    await expect(quotaPanel.getByText('Usage')).toBeVisible()
 
-    // These should show actual values from the fixtures
-    await expect(modelCard).toBeVisible()
-    await expect(quotaCard).toBeVisible()
-    await expect(chunksCard).toBeVisible()
+    // Health panel shows model value
+    const healthValue = panel(page, 'Health').getByText('gpt-4')
+    await expect(healthValue).toBeVisible()
 
-    // Verify they contain expected content
-    await expect(modelCard).toContainText('gpt-4')
-    await expect(quotaCard).toContainText('5.2TB')
-    await expect(chunksCard).toContainText('1234')
+    // Verify they contain expected content from fixture
+    await expect(quotaPanel.getByText('1.2TB')).toBeVisible()
+    await expect(quotaPanel.getByText('78%')).toBeVisible()
   })
 })

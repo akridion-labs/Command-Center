@@ -3,23 +3,9 @@
   "jobs": [
     {
       "name": "Daily backup",
-      "status": "completed"
-    },
-    {
-      "name": "System update",
-      "status": "pending"
+      "status": "due"
     }
   ],
-  "packets": [
-    {
-      "name": "Data processing",
-      "status": "in progress"
-    }
-  ],
-  "deferred": [
-    {
-      "name": "Security audit",
-      "status": "scheduled"
-    }
-  ]
+  "packets": [],
+  "deferred": []
 }

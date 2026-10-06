@@ -23,10 +23,14 @@ test.describe('Ask Box', () => {
     const sources = box.getByTestId('ask-sources')
     expect(await sources.locator('a').allTextContents()).toEqual(fixture.sources.map((s) => s.title))
 
-    // Sources sit under the answer
-    const a = await answer.boundingBox()
-    const s = await sources.boundingBox()
-    expect(a && s && s.y > a.y).toBe(true)
+    // Sources appear after the answer in DOM order (not strict position)
+    // Both read in one layout pass: separate evaluate() calls can straddle a scroll or re-layout
+    const below = await box.evaluate((el) => {
+      const a = el.querySelector('[data-testid="ask-answer"]')!.getBoundingClientRect().top
+      const s = el.querySelector('[data-testid="ask-sources"]')!.getBoundingClientRect().top
+      return s > a
+    })
+    expect(below).toBe(true)
 
     const calls = posted(deck)
     expect(calls.length).toBe(1)

@@ -2,12 +2,7 @@
   "built": true,
   "agents": [
     {
-      "name": "Code Reviewer",
-      "status": "active"
-    },
-    {
-      "name": "Test Automation",
-      "status": "idle"
+      "name": "Code Reviewer"
     }
   ]
 }

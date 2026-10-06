@@ -1,10 +1,18 @@
 {
   "built": true,
-  "own_health": "all checks green",
-  "reviews": 3,
-  "packets": 1,
-  "open_steps": 2,
-  "attention": [
-    { "title": "Approve slice 12b screenshots" }
+  "at": "2026-09-30T08:00:00Z",
+  "rows": [
+    {
+      "level": "ok",
+      "area": "brain",
+      "text": "all checks green",
+      "fix": ""
+    },
+    {
+      "level": "warn",
+      "area": "vault",
+      "text": "index is 3 days old",
+      "fix": "ojas index --refresh"
+    }
   ]
 }

@@ -6,6 +6,7 @@ import { NotBuilt } from '../NotBuilt'
 type Row = Record<string, unknown>
 const txt = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : JSON.stringify(v))
 const list = (v: unknown): Row[] => (Array.isArray(v) ? (v as Row[]) : [])
+const obj = (v: unknown): Row => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Row) : {})
 
 function Items({ rows, empty }: { rows: Row[]; empty: string }) {
   if (!rows.length) return <div className="card-note">{empty}</div>
@@ -53,8 +54,8 @@ export function QuotaPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
     <PanelShell title="Quota" panel={panel}>
       {(p: Row) => {
-        const storage = (p.storage ?? {}) as Row
-        const usage = (p.usage ?? {}) as Row
+        const storage = obj(p.storage)
+        const usage = obj(p.usage)
         return (
           <>
             <div className="eyebrow">Storage</div>
@@ -86,10 +87,25 @@ export function ActionsPanel() {
   )
 }
 
+// The same facts as `ojas selfcheck`: one row per finding, level ok/warn/bad/owe.
+function SelfCheckRows({ rows }: { rows: Row[] }) {
+  if (!rows.length) return <div className="card-note">no selfcheck rows</div>
+  return (
+    <ul>
+      {rows.map((r, i) => (
+        <li key={i} data-level={txt(r.level)}>
+          <span className="badge">{txt(r.level)}</span> <span className="eyebrow">{txt(r.area)}</span> {txt(r.text)}
+          {typeof r.fix === 'string' && r.fix !== '' && <div className="card-note"><code className="mono" style={{ userSelect: 'all' }}>{r.fix}</code></div>}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
     <PanelShell title="Self-Check" panel={panel}>
-      {(p: Row) => {
+      {(p) => {
         // Handle the case where we have data to display
         if (p.built === true) {
           return (
@@ -120,6 +136,7 @@ export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
               {p.attention !== undefined && (
                 <Items rows={list(p.attention)} empty="no attention items" />
               )}
+              {p.rows !== undefined && <SelfCheckRows rows={list(p.rows)} />}
             </>
           )
         }
@@ -131,11 +148,59 @@ export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
   )
 }
 
-function useEndpoint(path: string): Panel<Row> | null {
-  const [panel, setPanel] = useState<Panel<Row> | null>(null)
+interface Check {
+  name: string
+  ok: boolean
+  cause?: string
+  do?: string
+  detail?: string
+  fixed?: boolean
+}
+
+interface ChecksResponse {
+  at?: string
+  checks: Check[]
+}
+
+/** A shell command shown in monospace, selectable in one click, with a Copy button. */
+function Command({ text }: { text: string }) {
+  return (
+    <span>
+      <code className="mono" style={{ userSelect: 'all' }}>{text}</code>{' '}
+      <button type="button" className="pill" onClick={() => { void navigator.clipboard?.writeText(text) }}>Copy</button>
+    </span>
+  )
+}
+
+export function DoctorPanel({ panel }: { panel: Panel<ChecksResponse> | null }) {
+  return (
+    <PanelShell title="Doctor" panel={panel}>
+      {(p) => {
+        if (!p.built) return null
+        if (!p.checks.length) return <div className="card-note">no checks reported</div>
+        return (
+          <ul>
+            {p.checks.map((c) => (
+              <li key={c.name} data-ok={c.ok}>
+                <span>{c.ok ? '✓' : '✗'} {c.name}</span>
+                {c.fixed === true && <div className="card-note">fixed automatically</div>}
+                {!c.ok && c.cause && <div className="card-note">{c.cause}</div>}
+                {!c.ok && c.do && <div className="card-note"><Command text={c.do} /></div>}
+                {c.detail && <div className="card-note">{c.detail}</div>}
+              </li>
+            ))}
+          </ul>
+        )
+      }}
+    </PanelShell>
+  )
+}
+
+export function useEndpoint<T>(path: string): Panel<T> | null {
+  const [panel, setPanel] = useState<Panel<T> | null>(null)
   useEffect(() => {
     let live = true
-    get<Row>(path).then((p) => live && setPanel(p)).catch(() => live && setPanel({ built: false, why: `${path} unreachable` }))
+    get<T>(path).then((p) => live && setPanel(p)).catch(() => live && setPanel({ built: false, why: `${path} unreachable` }))
     return () => { live = false }
   }, [path])
   return panel
@@ -144,13 +209,14 @@ function useEndpoint(path: string): Panel<Row> | null {
 export function Panels() {
   return (
     <div className="cd-grid" id="sec-panels">
-      <HealthPanel panel={useEndpoint('/vyom/health')} />
-      <TasksPanel panel={useEndpoint('/vyom/tasks')} />
-      <AgentsPanel panel={useEndpoint('/vyom/agents')} />
-      <QuotaPanel panel={useEndpoint('/vyom/quota')} />
-      <ContainersPanel panel={useEndpoint('/vyom/containers')} />
+      <HealthPanel panel={useEndpoint<Row>('/vyom/health')} />
+      <TasksPanel panel={useEndpoint<Row>('/vyom/tasks')} />
+      <AgentsPanel panel={useEndpoint<Row>('/vyom/agents')} />
+      <QuotaPanel panel={useEndpoint<Row>('/vyom/quota')} />
+      <ContainersPanel panel={useEndpoint<Row>('/vyom/containers')} />
       <ActionsPanel />
-      <SelfCheckPanel panel={useEndpoint('/vyom/selfcheck')} />
+      <SelfCheckPanel panel={useEndpoint<Row>('/vyom/selfcheck')} />
+      <DoctorPanel panel={useEndpoint<ChecksResponse>('/vyom/doctor')} />
     </div>
   )
 }

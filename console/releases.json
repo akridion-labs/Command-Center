@@ -1,0 +1,54 @@
+[
+  {
+    "version": "0.1.21",
+    "date": "2026-10-06",
+    "since": "Initial release of Vyom Command Center",
+    "commits": [
+      "slice 0: Ojas brief and health",
+      "slice 2: Deploys dashboard",
+      "slice 5: Work patterns",
+      "slice 21: Model console"
+    ],
+    "slices": [
+      {
+        "id": "slice-0",
+        "title": "Ojas brief",
+        "commit": "99d8ff8",
+        "date": "2026-10-05",
+        "tests": 5
+      },
+      {
+        "id": "slice-2",
+        "title": "Deploys",
+        "commit": "f9352e8",
+        "date": "2026-10-05",
+        "tests": 3
+      },
+      {
+        "id": "slice-5",
+        "title": "Work patterns",
+        "commit": "4b90bb1",
+        "date": "2026-10-05",
+        "tests": 4
+      },
+      {
+        "id": "SLICE-21",
+        "title": "model console",
+        "commit": "slice/21",
+        "date": "2026-10-06",
+        "tests": 34
+      }
+    ],
+    "fixes": [
+      "CSP policy tightened to block inlined data",
+      "E2e login-free mode added"
+    ],
+    "other": [
+      "model picker with default marked",
+      "build loop evidence table",
+      "local models console",
+      "quality gate passed after fixing as any cast"
+    ]
+  }
+]
+
