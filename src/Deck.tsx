@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { get, type Panel } from './api'
+import { get, type Health, type Panel } from './api'
 import { NotBuilt } from './NotBuilt'
 import { Panels } from './panels/Panels'
 import { AskBox } from './ask/AskBox'
@@ -29,8 +29,6 @@ interface MeResponse {
   config_problem?: string
 }
 
-interface Health { model?: string; vault?: { total_chunks?: number } }
-interface Quota { storage?: { size?: string; chunks?: number; index_age?: string }; usage?: { built?: boolean; why?: string } }
 
 const ABSENT = (why: string): Panel<never> => ({ built: false, why })
 const SECTIONS = [
@@ -65,10 +63,9 @@ function Gauge({ label, unit }: { label: string; unit: string }) {
 
 export function Deck() {
   const [health, setHealth] = useState<Panel<Health> | null>(null)
-  const [quota, setQuota] = useState<Panel<Quota> | null>(null)
   const [me, setMe] = useState<MeResponse | null>(null)
   const [models, setModels] = useState<Panel<ModelsResponse> | null>(null)
-  const [releases, setReleases] = useState<Panel<Release[]> | null>(null)
+  const [releases, setReleases] = useState<Panel<{ releases: Release[] }> | null>(null)
   const [range, setRange] = useState('24h')
 
   const loadModels = useCallback(() => {
@@ -84,13 +81,18 @@ export function Deck() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json()
       })
-      .then(data => setReleases({ built: true, data }))
+      .then((data: unknown) => {
+        if (Array.isArray(data)) {
+          setReleases({ built: true, releases: data })
+        } else {
+          setReleases({ built: false, why: '/console/releases.json is not an array' })
+        }
+      })
       .catch(() => setReleases({ built: false, why: '/console/releases.json unreachable' }))
   }, [])
 
   useEffect(() => {
     get<Health>('/vyom/health').then(setHealth).catch(() => setHealth({ built: false, why: 'health unreachable' }))
-    get<Quota>('/vyom/quota').then(setQuota).catch(() => setQuota({ built: false, why: 'quota unreachable' }))
     get<MeResponse>('/vyom/me').then((response) => {
       if (response.built) {
         setMe(response)
@@ -103,6 +105,7 @@ export function Deck() {
   }, [loadModels, loadReleases])
 
   const model = health?.built ? health.model : undefined
+  const storage = health?.built ? health.storage : undefined
   const chunks = health?.built ? health.vault?.total_chunks : undefined
 
   const defaultModel = models?.built ? models.default : ''
@@ -163,12 +166,11 @@ export function Deck() {
           <Card title="Active model" badge="routing">
             {model ? <div className="card-value mono" style={{ fontSize: 26 }}>{model}</div> : <NotBuilt panel={ABSENT('model not reported by /vyom/health')} />}
           </Card>
-          <Card title="Cloud quota" badge="glm">
-            {storage ? <div className="card-value">{storage.size ?? '-'}</div> : <NotBuilt panel={ABSENT('no quota data')} />}
-            {storage?.index_age && <div className="card-note">index age {storage.index_age}</div>}
+          <Card title="Cloud quota">
+            {storage?.size !== undefined ? <div className="card-value">{storage.size}</div> : <NotBuilt panel={ABSENT('quota not reported')} />}
           </Card>
-          <Card title="Spend (mo)">
-            <NotBuilt panel={ABSENT(usage?.why ?? 'usage is not built')} />
+          <Card title="Storage">
+            {storage?.size !== undefined ? <div className="card-value">{storage.size}</div> : <NotBuilt panel={ABSENT('storage not reported')} />}
           </Card>
           <Card title="Vault chunks">
             {chunks !== undefined ? <div className="card-value">{chunks}</div> : <NotBuilt panel={ABSENT('chunks not reported')} />}
@@ -215,7 +217,7 @@ export function Deck() {
               <div className="card sp2" aria-label="Release History">
                 <div className="card-title">Release History</div>
                 <ul>
-                  {(releases.data as Release[]).map((release, index) => (
+                  {releases.releases.map((release, index) => (
                     <li key={index}>
                       <div className="eyebrow">{release.version} • {release.date}</div>
                       <p>{release.since}</p>

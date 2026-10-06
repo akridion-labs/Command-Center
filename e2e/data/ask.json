@@ -4,7 +4,7 @@
   "sources": [
     {
       "title": "Sample Source",
-      "url": "https://example.com/sample",
+      "url": "http://localhost:8765/sample",
       "snippet": "This is a snippet from the sample source."
     }
   ]

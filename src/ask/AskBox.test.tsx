@@ -372,7 +372,7 @@ describe('AskBox', () => {
     }
   })
 
-  it('TC-21-03: src/ask covers every unit case of story 6 (answer+sources, empty sources, error, pending, NOT BUILT)', () => {
+  it('TC-6-25: src/ask covers every unit case of story 6 (answer+sources, empty sources, error, pending, NOT BUILT)', () => {
     const titled = new Set(Array.from(suiteSource.matchAll(/\(\s*'(TC-6-\d+):/g), (m) => m[1]))
     const unitCases = Array.from({ length: 19 }, (_, i) => `TC-6-${i + 1}`)
     expect(unitCases.filter((id) => !titled.has(id))).toEqual([])

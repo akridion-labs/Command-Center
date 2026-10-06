@@ -1,6 +1,9 @@
 {
   "built": true,
   "model": "gpt-4",
+  "storage": {
+    "size": "5.2TB"
+  },
   "vault": {
     "total_chunks": 1500
   },

@@ -6,6 +6,7 @@ import { NotBuilt } from '../NotBuilt'
 type Row = Record<string, unknown>
 const txt = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : JSON.stringify(v))
 const list = (v: unknown): Row[] => (Array.isArray(v) ? (v as Row[]) : [])
+const obj = (v: unknown): Row => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Row) : {})
 
 function Items({ rows, empty }: { rows: Row[]; empty: string }) {
   if (!rows.length) return <div className="card-note">{empty}</div>
@@ -52,10 +53,9 @@ export function AgentsPanel({ panel }: { panel: Panel<Row> | null }) {
 export function QuotaPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
     <PanelShell title="Quota" panel={panel}>
-      {(p) => {
-        // Handle the case where storage and usage are not directly accessible in the Panel
-        const storage = (p as any).storage ?? {}
-        const usage = (p as any).usage ?? {}
+      {(p: Row) => {
+        const storage = obj(p.storage)
+        const usage = obj(p.usage)
         return (
           <>
             <div className="eyebrow">Storage</div>
