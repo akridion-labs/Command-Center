@@ -102,9 +102,10 @@ describe('Model console', () => {
     await screen.findByText('from llama')
 
     expect(mockFetch.mock.calls.map(([url]) => url)).toEqual(['/vyom/ask', '/vyom/ask'])
+    // Story 13 AC5: the second ask is a follow-up, so it also carries the previous turn.
     expect(postedBodies()).toEqual([
       { query: 'why did slice 20 stall?', model: 'qwen2.5-coder:14b' },
-      { query: 'why did slice 20 stall?', model: 'llama3.1:8b' },
+      { query: 'why did slice 20 stall?', model: 'llama3.1:8b', history: [{ query: 'why did slice 20 stall?', answer: 'from qwen' }] },
     ])
   })
 

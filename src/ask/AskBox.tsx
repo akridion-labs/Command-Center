@@ -20,27 +20,37 @@ interface AskBoxProps {
   models?: string[]
   /** The brain's default model, marked in the picker; used when no model is chosen. */
   defaultModel?: string
+  /** Config problem text to display near sources */
+  configProblem?: string | null
 }
 
 function goTo(url: string) {
   location.href = url
 }
 
+/** One answered question; the follow-up carries it, like the `ojas` loop. */
+export interface Turn {
+  query: string
+  answer: string
+}
+
 const wrap = { overflowWrap: 'anywhere', wordBreak: 'break-word', minWidth: 0 } as const
+const UNREACHABLE: Panel<never> = { built: false, why: '/vyom/ask unreachable' }
 
 // Same status mapping as api.ts `get`, for a POST.
-async function ask(query: string, model: string | undefined, redirect: (url: string) => void): Promise<Panel<AskResult> | null> {
+async function ask(query: string, model: string | undefined, previous: Turn | null, redirect: (url: string) => void): Promise<Panel<AskResult> | null> {
   const r = await fetch('/vyom/ask', {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       query,
-      ...(model !== undefined && model !== '' ? { model } : {})
+      ...(model !== undefined && model !== '' ? { model } : {}),
+      ...(previous ? { history: [previous] } : {}),
     }),
   })
   if (r.status === 401) { redirect('/vyom/login'); return null }
-  if (r.status === 403) return { built: false, why: 'not permitted for your role' }
+  if (r.status === 403) return UNREACHABLE
   if (r.status === 501) return { built: false, why: 'not implemented yet' }
   if (r.status === 400) {
     // e.g. `unknown_model` when the chosen model is not one of /vyom/models
@@ -58,13 +68,15 @@ async function ask(query: string, model: string | undefined, redirect: (url: str
   }
 }
 
-export function AskBox({ redirect = goTo, models, defaultModel }: AskBoxProps) {
+export function AskBox({ redirect = goTo, models, defaultModel, configProblem }: AskBoxProps) {
   const [query, setQuery] = useState('')
   // undefined = no `model` in the request, so the brain uses its default
   const [model, setModel] = useState<string | undefined>(undefined)
   const [result, setResult] = useState<Panel<AskResult> | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // The last answered turn; a failed or refused ask is not a turn, so it is kept.
+  const [previous, setPrevious] = useState<Turn | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -75,7 +87,9 @@ export function AskBox({ redirect = goTo, models, defaultModel }: AskBoxProps) {
     setResult(null)
 
     try {
-      setResult(await ask(query, model, redirect))
+      const res = await ask(query, model, previous, redirect)
+      setResult(res)
+      if (res?.built) setPrevious({ query, answer: res.answer })
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setError(msg.startsWith('HTTP ') ? msg : `network failure (${msg})`)
@@ -119,10 +133,17 @@ export function AskBox({ redirect = goTo, models, defaultModel }: AskBoxProps) {
         </button>
       </form>
 
+      {loading && (
+        <div className="card-note" data-testid="ask-loading" style={{ marginTop: 12 }}>loading…</div>
+      )}
+
       {error && (
-        <div className="card-note" role="alert" style={{ color: '#ff4b33', ...wrap }}>
-          Error: {error}
-        </div>
+        <>
+          <NotBuilt panel={UNREACHABLE} />
+          <div className="card-note" role="alert" style={{ color: '#ff4b33', ...wrap }}>
+            Error: {error}
+          </div>
+        </>
       )}
 
       {result && (
@@ -162,6 +183,13 @@ export function AskBox({ redirect = goTo, models, defaultModel }: AskBoxProps) {
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {configProblem && (
+        // The only place the config problem shows: under the sources, once.
+        <div className="card-note" data-testid="ask-config-problem" aria-label="Config Problem" style={{ color: '#ff4b33', marginTop: 12, whiteSpace: 'pre-wrap', ...wrap }}>
+          Config Problem: <span>{configProblem}</span>
         </div>
       )}
     </div>

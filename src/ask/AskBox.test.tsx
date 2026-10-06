@@ -153,7 +153,8 @@ describe('AskBox', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  it('TC-6-8: HTTP 500 shows "Error: HTTP 500" and no answer, Sources or NOT BUILT', async () => {
+  // Story 13 AC7 supersedes slice 6 here: a failed ask also shows NOT BUILT "/vyom/ask unreachable".
+  it('TC-6-8: HTTP 500 shows "Error: HTTP 500" with NOT BUILT unreachable and no answer or Sources', async () => {
     mockFetch.mockResolvedValueOnce(json({ answer: 'should not show', sources: makeSources(1) }, 500))
     render(<AskBox />)
 
@@ -164,7 +165,8 @@ describe('AskBox', () => {
     expect(screen.queryByTestId('ask-answer')).toBeNull()
     expect(screen.queryByText('should not show')).toBeNull()
     expect(screen.queryByText('Sources')).toBeNull()
-    expect(screen.queryByText('NOT BUILT')).toBeNull()
+    expect(screen.getByText('NOT BUILT')).toBeTruthy()
+    expect(screen.getByText('/vyom/ask unreachable')).toBeTruthy()
   })
 
   it('TC-6-9: a network failure shows a failure message and no answer', async () => {
@@ -176,7 +178,7 @@ describe('AskBox', () => {
     const alert = await screen.findByRole('alert')
     expect(alert.textContent).toContain('network failure')
     expect(screen.queryByTestId('ask-answer')).toBeNull()
-    expect(screen.queryByText('NOT BUILT')).toBeNull()
+    expect(screen.getByText('/vyom/ask unreachable')).toBeTruthy()
   })
 
   it('TC-6-10: HTTP 501 shows NOT BUILT and "not implemented yet", no answer', async () => {
@@ -202,16 +204,17 @@ describe('AskBox', () => {
     expect(screen.queryByTestId('ask-answer')).toBeNull()
   })
 
-  it('TC-6-11: HTTP 403 shows "not permitted for your role" and no answer or sources', async () => {
+  it('TC-6-11: HTTP 403 shows NOT BUILT with "/vyom/ask unreachable" and no answer or sources', async () => {
     mockFetch.mockResolvedValueOnce(json({ answer: 'secret', sources: makeSources(2) }, 403))
     render(<AskBox />)
 
     askQuestion('q')
 
-    await screen.findByText('not permitted for your role')
+    await screen.findByText('/vyom/ask unreachable')
     expect(screen.queryByTestId('ask-answer')).toBeNull()
     expect(screen.queryByText('secret')).toBeNull()
     expect(screen.queryByText('Sources')).toBeNull()
+    expect(screen.getByText('NOT BUILT')).toBeTruthy()
   })
 
   it('TC-6-12: HTTP 401 sends the browser to /vyom/login and renders no answer', async () => {
