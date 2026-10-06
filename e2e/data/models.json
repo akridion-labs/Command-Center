@@ -1,38 +1,28 @@
 {
   "built": true,
-  "default": "gpt-4",
+  "default": "qwen2.5-coder:14b",
   "models": [
     {
-      "name": "gpt-4",
+      "name": "qwen2.5-coder:14b",
       "default": true
     },
     {
-      "name": "claude-3",
-      "default": false
-    },
-    {
-      "name": "llama-2",
+      "name": "llama3.1:8b",
       "default": false
     }
   ],
   "build_loop_evidence": {
-    "gpt-4": {
-      "calls": 100,
-      "minutes": 50,
-      "slices_ok": 95,
-      "first_try": 87
-    },
-    "claude-3": {
-      "calls": 80,
-      "minutes": 40,
-      "slices_ok": 90,
-      "first_try": 75
-    },
-    "llama-2": {
+    "qwen2.5-coder:14b": {
       "calls": 120,
-      "minutes": 60,
-      "slices_ok": 85,
-      "first_try": 60
+      "minutes": 95,
+      "slices_ok": 12,
+      "first_try": 9
+    },
+    "llama3.1:8b": {
+      "calls": 40,
+      "minutes": 31,
+      "slices_ok": 4,
+      "first_try": 1
     }
   }
 }

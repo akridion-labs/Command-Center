@@ -94,7 +94,7 @@ export const test = base.extend<{ deck: Deck }>({
 
 export { expect }
 
-export const PANELS = ['Health', 'Tasks', 'Agents', 'Quota', 'Containers', 'Self-Check'] as const
+export const PANELS = ['Health', 'Tasks', 'Agents', 'Quota', 'Containers', 'Self-Check', 'Models', 'Doctor'] as const
 
 /** The panel card whose heading is exactly `title`. */
 export function panel(page: Page, title: string) {

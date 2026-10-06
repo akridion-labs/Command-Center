@@ -1,12 +1,28 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { get, type Panel } from './api'
 import { NotBuilt } from './NotBuilt'
 import { Panels } from './panels/Panels'
 import { AskBox } from './ask/AskBox'
 import { Background } from './scene/Background'
 import { Tile } from './tiles'
-import { ModelsSection, type Model, type BuildLoopEvidence } from './models/Models'
+import { ModelsSection, type ModelsResponse } from './models/Models'
 import './design/deck.css'
+
+interface Release {
+  version: string
+  date: string
+  since: string
+  commits: string[]
+  slices: Array<{
+    id: string
+    title: string
+    commit: string
+    date: string
+    tests: number
+  }>
+  fixes: string[]
+  other: string[]
+}
 
 interface MeResponse {
   options?: Record<string, unknown>
@@ -15,12 +31,6 @@ interface MeResponse {
 
 interface Health { model?: string; vault?: { total_chunks?: number } }
 interface Quota { storage?: { size?: string; chunks?: number; index_age?: string }; usage?: { built?: boolean; why?: string } }
-interface ModelsResponse {
-  built: boolean
-  default: string
-  models: Model[]
-  build_loop_evidence: Record<string, BuildLoopEvidence>
-}
 
 const ABSENT = (why: string): Panel<never> => ({ built: false, why })
 const SECTIONS = [
@@ -58,7 +68,25 @@ export function Deck() {
   const [quota, setQuota] = useState<Panel<Quota> | null>(null)
   const [me, setMe] = useState<MeResponse | null>(null)
   const [models, setModels] = useState<Panel<ModelsResponse> | null>(null)
+  const [releases, setReleases] = useState<Panel<Release[]> | null>(null)
   const [range, setRange] = useState('24h')
+
+  const loadModels = useCallback(() => {
+    setModels(null)
+    get<ModelsResponse>('/vyom/models').then(setModels).catch(() => setModels({ built: false, why: '/vyom/models unreachable' }))
+  }, [])
+
+  const loadReleases = useCallback(() => {
+    setReleases(null)
+    // Fetch from the static releases.json file in console directory
+    fetch('/console/releases.json')
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        return response.json()
+      })
+      .then(data => setReleases({ built: true, data }))
+      .catch(() => setReleases({ built: false, why: '/console/releases.json unreachable' }))
+  }, [])
 
   useEffect(() => {
     get<Health>('/vyom/health').then(setHealth).catch(() => setHealth({ built: false, why: 'health unreachable' }))
@@ -70,13 +98,12 @@ export function Deck() {
         setMe(null)
       }
     }).catch(() => setMe(null))
-    get<ModelsResponse>('/vyom/models').then(setModels).catch(() => setModels({ built: false, why: 'models unreachable' }))
-  }, [])
+    loadModels()
+    loadReleases()
+  }, [loadModels, loadReleases])
 
   const model = health?.built ? health.model : undefined
   const chunks = health?.built ? health.vault?.total_chunks : undefined
-  const storage = quota?.built ? quota.storage : undefined
-  const usage = quota?.built ? quota.usage : undefined
 
   const defaultModel = models?.built ? models.default : ''
   const modelNames = models?.built ? models.models.map(m => m.name) : []
@@ -179,7 +206,32 @@ export function Deck() {
           </div>
         )}
 
-        <ModelsSection />
+        <ModelsSection panel={models} onRetry={loadModels} />
+
+        {releases && (
+          <div className="cd-grid">
+            <div className="sp4 section-label" id="sec-releases">Releases</div>
+            {releases.built ? (
+              <div className="card sp2" aria-label="Release History">
+                <div className="card-title">Release History</div>
+                <ul>
+                  {(releases.data as Release[]).map((release, index) => (
+                    <li key={index}>
+                      <div className="eyebrow">{release.version} • {release.date}</div>
+                      <p>{release.since}</p>
+                      <p>Commits: {release.commits.join(', ')}</p>
+                      <p>Slices: {release.slices.length}</p>
+                      <p>Fixes: {release.fixes.length}</p>
+                      <p>Other: {release.other.length}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <NotBuilt panel={releases} />
+            )}
+          </div>
+        )}
 
         <Panels />
       </div>

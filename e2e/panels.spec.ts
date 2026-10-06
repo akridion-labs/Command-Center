@@ -1,4 +1,4 @@
-import { test, expect, panel, openConsole, PANELS, data } from './fixtures'
+import { test, expect, panel, openConsole, PANELS, data, type Endpoint } from './fixtures'
 
 const CONTENT: Record<(typeof PANELS)[number], string> = {
   Health: 'Low disk space',
@@ -7,9 +7,12 @@ const CONTENT: Record<(typeof PANELS)[number], string> = {
   Quota: '1.2TB',
   Containers: 'web-server',
   'Self-Check': 'all checks green',
+  Models: 'llama3.1:8b',
+  Doctor: 'ollama reachable',
 }
-const ENDPOINT: Record<(typeof PANELS)[number], 'health' | 'tasks' | 'agents' | 'quota' | 'containers' | 'selfcheck'> = {
+const ENDPOINT: Record<(typeof PANELS)[number], Endpoint> = {
   Health: 'health', Tasks: 'tasks', Agents: 'agents', Quota: 'quota', Containers: 'containers', 'Self-Check': 'selfcheck',
+  Models: 'models', Doctor: 'doctor',
 }
 const why = (endpoint: string) => (data(`${endpoint}-not-built.json`) as { why: string }).why
 
@@ -41,7 +44,7 @@ test.describe('Panels', () => {
     deck.unmocked.length = 0 // proven loud; let teardown pass
   })
 
-  test('TC-12b-6: Given all endpoints BUILT When the console opens Then six panels show their titles and fixture content', async ({ page }) => {
+  test('TC-12b-6: Given all endpoints BUILT When the console opens Then panels show their titles and fixture content', async ({ page }) => {
     await openConsole(page)
     for (const title of PANELS) {
       const p = panel(page, title)
@@ -60,11 +63,13 @@ test.describe('Panels', () => {
     expect(await agents.locator('p').first().textContent()).toBe(why('agents'))
     await expect(agents.locator('li')).toHaveCount(0)
     for (const title of PANELS.filter((t) => t !== 'Agents')) {
-      await expect(panel(page, title).getByText(CONTENT[title])).toBeVisible()
+      const p = panel(page, title)
+      await expect(p.getByText(CONTENT[title])).toBeVisible()
+      await expect(p.getByText('NOT BUILT')).toHaveCount(0)
     }
   })
 
-  test('TC-12b-8: Given every endpoint NOT BUILT When the console opens Then all six panels show NOT BUILT with their own why and the page does not crash', async ({ page, deck }) => {
+  test('TC-12b-8: Given every endpoint NOT BUILT When the console opens Then all panels show NOT BUILT with their own why and the page does not crash', async ({ page, deck }) => {
     deck.allNotBuilt()
     await openConsole(page)
     for (const title of PANELS) {
@@ -85,12 +90,12 @@ test.describe('Panels', () => {
     await expect(panel(page, 'Containers').getByText('no containers reported')).toBeVisible()
   })
 
-  test('TC-12b-10: Given one endpoint returns 500 When the console opens Then that panel shows NOT BUILT "unreachable" and the other five still render', async ({ page, deck }) => {
+  test('TC-12b-10: Given one endpoint returns 500 When the console opens Then that panel shows NOT BUILT "unreachable" and the other panels still render', async ({ page, deck }) => {
     deck.use('containers', { status: 500, body: { error: 'boom' } })
     await openConsole(page)
     const containers = panel(page, 'Containers')
     await expect(containers.getByText('NOT BUILT', { exact: true })).toBeVisible()
-    await expect(containers.getByText('/vyom/containers unreachable', { exact: true })).toBeVisible()
+    await expect(containers.getByText('/vyom/containers unreachable')).toBeVisible()
     for (const title of PANELS.filter((t) => t !== 'Containers')) {
       await expect(panel(page, title).getByText(CONTENT[title])).toBeVisible()
     }

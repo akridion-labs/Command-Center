@@ -3,5 +3,10 @@
   "model": "gpt-4",
   "vault": {
     "total_chunks": 1500
-  }
+  },
+  "attention": [
+    {
+      "title": "Low disk space"
+    }
+  ]
 }

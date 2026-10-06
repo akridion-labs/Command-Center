@@ -1,20 +1,23 @@
 {
   "built": true,
+  "at": "2026-09-30T08:00:00Z",
   "checks": [
     {
-      "name": "System health",
-      "ok": true,
-      "fixed": false
+      "name": "ollama reachable",
+      "ok": true
     },
     {
-      "name": "Index freshness",
+      "name": "vault index",
       "ok": true,
-      "fixed": false
+      "fixed": true,
+      "detail": "stale lock removed"
     },
     {
       "name": "GPU memory",
-      "ok": true,
-      "fixed": false
+      "ok": false,
+      "cause": "GPU memory near capacity",
+      "do": "ojas doctor --fix",
+      "detail": "85% of VRAM in use"
     }
   ]
 }

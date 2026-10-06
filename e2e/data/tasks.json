@@ -1,6 +1,11 @@
 {
   "built": true,
-  "jobs": [],
+  "jobs": [
+    {
+      "name": "Daily backup",
+      "status": "due"
+    }
+  ],
   "packets": [],
   "deferred": []
 }

@@ -52,9 +52,10 @@ export function AgentsPanel({ panel }: { panel: Panel<Row> | null }) {
 export function QuotaPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
     <PanelShell title="Quota" panel={panel}>
-      {(p: any) => {
-        const storage = (p.storage ?? {}) as Row
-        const usage = (p.usage ?? {}) as Row
+      {(p) => {
+        // Handle the case where storage and usage are not directly accessible in the Panel
+        const storage = (p as any).storage ?? {}
+        const usage = (p as any).usage ?? {}
         return (
           <>
             <div className="eyebrow">Storage</div>
@@ -86,10 +87,25 @@ export function ActionsPanel() {
   )
 }
 
+// The same facts as `ojas selfcheck`: one row per finding, level ok/warn/bad/owe.
+function SelfCheckRows({ rows }: { rows: Row[] }) {
+  if (!rows.length) return <div className="card-note">no selfcheck rows</div>
+  return (
+    <ul>
+      {rows.map((r, i) => (
+        <li key={i} data-level={txt(r.level)}>
+          <span className="badge">{txt(r.level)}</span> <span className="eyebrow">{txt(r.area)}</span> {txt(r.text)}
+          {typeof r.fix === 'string' && r.fix !== '' && <div className="card-note"><code className="mono" style={{ userSelect: 'all' }}>{r.fix}</code></div>}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
   return (
     <PanelShell title="Self-Check" panel={panel}>
-      {(p: any) => {
+      {(p) => {
         // Handle the case where we have data to display
         if (p.built === true) {
           return (
@@ -120,78 +136,12 @@ export function SelfCheckPanel({ panel }: { panel: Panel<Row> | null }) {
               {p.attention !== undefined && (
                 <Items rows={list(p.attention)} empty="no attention items" />
               )}
+              {p.rows !== undefined && <SelfCheckRows rows={list(p.rows)} />}
             </>
           )
         }
 
         // If not built, the PanelShell will render NotBuilt automatically
-        return null
-      }}
-    </PanelShell>
-  )
-}
-
-interface Model {
-  name: string
-  default: boolean
-}
-
-interface BuildLoopEvidence {
-  calls: number
-  minutes: number
-  slices_ok: number
-  first_try: number
-}
-
-function ModelRow({ model, evidence }: { model: Model; evidence?: BuildLoopEvidence }) {
-  return (
-    <tr key={model.name}>
-      <td>{model.name}</td>
-      <td>{model.default ? '✓' : ''}</td>
-      <td>{evidence?.calls ?? 0}</td>
-      <td>{evidence?.minutes ?? 0}m</td>
-      <td>{Math.round(evidence?.slices_ok ?? 0)}%</td>
-      <td>{Math.round(evidence?.first_try ?? 0)}%</td>
-    </tr>
-  )
-}
-
-interface ModelsResponse {
-  built: boolean
-  default: string
-  models: Model[]
-  build_loop_evidence: Record<string, BuildLoopEvidence>
-}
-
-export function ModelsPanel({ panel }: { panel: Panel<ModelsResponse> | null }) {
-  return (
-    <PanelShell title="Models" panel={panel}>
-      {(p: Panel<ModelsResponse>) => {
-        if (p.built === true && p.models !== undefined) {
-          return (
-            <>
-              <div className="card-note">Default model: {p.default}</div>
-              <div className="card-note" style={{ marginTop: 12 }}>Available models:</div>
-              <table className="model-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Default</th>
-                    <th>Calls</th>
-                    <th>Minutes</th>
-                    <th>Slices OK</th>
-                    <th>First Try %</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {p.models.map((model) => (
-                    <ModelRow key={model.name} model={model} evidence={(p as ModelsResponse).build_loop_evidence[model.name]} />
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )
-        }
         return null
       }}
     </PanelShell>
@@ -208,46 +158,39 @@ interface Check {
 }
 
 interface ChecksResponse {
-  built: boolean
+  at?: string
   checks: Check[]
+}
+
+/** A shell command shown in monospace, selectable in one click, with a Copy button. */
+function Command({ text }: { text: string }) {
+  return (
+    <span>
+      <code className="mono" style={{ userSelect: 'all' }}>{text}</code>{' '}
+      <button type="button" className="pill" onClick={() => { void navigator.clipboard?.writeText(text) }}>Copy</button>
+    </span>
+  )
 }
 
 export function DoctorPanel({ panel }: { panel: Panel<ChecksResponse> | null }) {
   return (
     <PanelShell title="Doctor" panel={panel}>
-      {(p: Panel<ChecksResponse>) => {
-        if (p.built === true && p.checks !== undefined) {
-          return (
-            <>
-              <div className="card-note">System checks:</div>
-              <table className="model-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Cause</th>
-                    <th>Action</th>
-                    <th>Detail</th>
-                    <th>Fixed</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {p.checks.map((check: Check) => (
-                    <tr key={check.name}>
-                      <td>{check.name}</td>
-                      <td>{check.ok ? '✓' : '✗'}</td>
-                      <td>{check.cause ?? '-'}</td>
-                      <td>{check.do ?? '-'}</td>
-                      <td className="mono">{check.detail || '-'}</td>
-                      <td>{check.fixed === true ? 'yes' : check.fixed === false ? 'no' : '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )
-        }
-        return null
+      {(p) => {
+        if (!p.built) return null
+        if (!p.checks.length) return <div className="card-note">no checks reported</div>
+        return (
+          <ul>
+            {p.checks.map((c) => (
+              <li key={c.name} data-ok={c.ok}>
+                <span>{c.ok ? '✓' : '✗'} {c.name}</span>
+                {c.fixed === true && <div className="card-note">fixed automatically</div>}
+                {!c.ok && c.cause && <div className="card-note">{c.cause}</div>}
+                {!c.ok && c.do && <div className="card-note"><Command text={c.do} /></div>}
+                {c.detail && <div className="card-note">{c.detail}</div>}
+              </li>
+            ))}
+          </ul>
+        )
       }}
     </PanelShell>
   )
@@ -263,13 +206,6 @@ export function useEndpoint<T>(path: string): Panel<T> | null {
   return panel
 }
 
-interface ModelsResponse {
-  built: boolean
-  default: string
-  models: Model[]
-  build_loop_evidence: Record<string, BuildLoopEvidence>
-}
-
 export function Panels() {
   return (
     <div className="cd-grid" id="sec-panels">
@@ -280,15 +216,7 @@ export function Panels() {
       <ContainersPanel panel={useEndpoint<Row>('/vyom/containers')} />
       <ActionsPanel />
       <SelfCheckPanel panel={useEndpoint<Row>('/vyom/selfcheck')} />
-      <ModelsPanel panel={useEndpoint<ModelsResponse>('/vyom/models')} />
       <DoctorPanel panel={useEndpoint<ChecksResponse>('/vyom/doctor')} />
     </div>
   )
-}
-
-interface ModelsResponse {
-  built: boolean
-  default: string
-  models: Model[]
-  build_loop_evidence: Record<string, BuildLoopEvidence>
 }

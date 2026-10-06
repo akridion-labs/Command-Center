@@ -16,8 +16,10 @@ export interface AskResult {
 interface AskBoxProps {
   /** Where a 401 sends the browser; injectable so tests can observe it. */
   redirect?: (url: string) => void
-  models?: string[] // Available models for selection
-  defaultModel?: string // The model selected by default when no model is chosen
+  /** Local model names from /vyom/models; when given, the box shows a model picker. */
+  models?: string[]
+  /** The brain's default model, marked in the picker; used when no model is chosen. */
+  defaultModel?: string
 }
 
 function goTo(url: string) {
@@ -32,11 +34,20 @@ async function ask(query: string, model: string | undefined, redirect: (url: str
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, model }),
+    body: JSON.stringify({
+      query,
+      ...(model !== undefined && model !== '' ? { model } : {})
+    }),
   })
   if (r.status === 401) { redirect('/vyom/login'); return null }
   if (r.status === 403) return { built: false, why: 'not permitted for your role' }
   if (r.status === 501) return { built: false, why: 'not implemented yet' }
+  if (r.status === 400) {
+    // e.g. `unknown_model` when the chosen model is not one of /vyom/models
+    const body = await r.json().catch(() => null)
+    const code = body?.error ?? body?.why
+    throw new Error(typeof code === 'string' ? `HTTP 400 ${code}` : 'HTTP 400')
+  }
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   const data = await r.json()
   if (data && data.built === false) return { built: false, why: data.why || 'not implemented yet' }
@@ -47,8 +58,9 @@ async function ask(query: string, model: string | undefined, redirect: (url: str
   }
 }
 
-export function AskBox({ redirect = goTo, models }: AskBoxProps) {
+export function AskBox({ redirect = goTo, models, defaultModel }: AskBoxProps) {
   const [query, setQuery] = useState('')
+  // undefined = no `model` in the request, so the brain uses its default
   const [model, setModel] = useState<string | undefined>(undefined)
   const [result, setResult] = useState<Panel<AskResult> | null>(null)
   const [loading, setLoading] = useState(false)
@@ -86,14 +98,15 @@ export function AskBox({ redirect = goTo, models }: AskBoxProps) {
         />
         {models && models.length > 0 && (
           <select
-            value={model || ''}
+            aria-label="Model"
+            value={model ?? ''}
             onChange={(e) => setModel(e.target.value || undefined)}
             disabled={loading}
             style={{ padding: '8px 12px', borderRadius: 4, border: '1px solid #39c6ff', background: 'rgba(57,198,255,.1)', color: '#fff' }}
           >
-            <option value="">Select a model</option>
+            <option value="">{defaultModel ? `brain default (${defaultModel})` : 'brain default'}</option>
             {models.map((m) => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>{m === defaultModel ? `${m} (default)` : m}</option>
             ))}
           </select>
         )}

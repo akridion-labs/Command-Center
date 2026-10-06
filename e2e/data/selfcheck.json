@@ -1,8 +1,18 @@
 {
   "built": true,
-  "own_health": "healthy",
-  "reviews": 0,
-  "packets": 0,
-  "open_steps": 0,
-  "attention": []
+  "at": "2026-09-30T08:00:00Z",
+  "rows": [
+    {
+      "level": "ok",
+      "area": "brain",
+      "text": "all checks green",
+      "fix": ""
+    },
+    {
+      "level": "warn",
+      "area": "vault",
+      "text": "index is 3 days old",
+      "fix": "ojas index --refresh"
+    }
+  ]
 }
