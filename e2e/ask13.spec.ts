@@ -25,25 +25,32 @@ test.describe('Story 13 - conversational ask box', () => {
     expect(await box.getByTestId('ask-sources').locator('a').allTextContents()).toEqual(['self-check', 'weather'])
   })
 
-  test('TC-13-12: Given the answer has 50+ sources When it renders Then every label shows and the screenshot shows no overflow, overlap or cut-off list', async ({ page, deck }) => {
-    const manySources = Array.from({ length: 50 }, (_, i) => ({
+  test('TC-13-12: Given the answer has 50+ sources When it renders Then every label shows and the screenshot shows no overflow, overlap or cut-off list', { tag: '@visual' }, async ({ page, deck }) => {
+    const manySources = Array.from({ length: 60 }, (_, i) => ({
       title: `Source ${i + 1}`,
       url: `/docs/source/${i + 1}`,
-      snippet: `Snippet for source ${i + 1}`
+      snippet: `Snippet for source ${i + 1}`,
     }))
     deck.use('ask', { body: { answer: 'Many sources', sources: manySources } })
     await openConsole(page)
     const box = await ask(page, 'Query?')
     await expect(box.getByTestId('ask-answer')).toHaveText('Many sources')
 
-    // Check that all 50 sources are displayed
-    const sourceLinks = await box.getByTestId('ask-sources').locator('a').all()
-    expect(sourceLinks).toHaveLength(50)
+    const links = box.getByTestId('ask-sources').locator('a')
+    await expect(links).toHaveCount(60)
+    for (let i = 0; i < 60; i++) await expect(links.nth(i)).toHaveText(`Source ${i + 1}`)
 
-    // Verify each source title is present
-    for (let i = 0; i < 50; i++) {
-      await expect(sourceLinks[i]).toHaveText(`Source ${i + 1}`)
-    }
+    // the last link must sit inside the card's box, not clipped by its overflow
+    await links.last().scrollIntoViewIfNeeded()
+    const r = await box.evaluate((el) => {
+      const last = el.querySelector('[data-testid="ask-sources"] li:last-child a')!.getBoundingClientRect()
+      const card = el.getBoundingClientRect()
+      return { linkTop: last.top, linkBottom: last.bottom, cardTop: card.top, cardBottom: card.bottom }
+    })
+    expect(r.linkTop).toBeGreaterThanOrEqual(r.cardTop)
+    expect(r.linkBottom).toBeLessThanOrEqual(r.cardBottom)
+    await expect(links.last()).toBeVisible()
+    await expect(box).toHaveScreenshot('ask-60-sources.png', { animations: 'disabled', mask: [page.locator('canvas')] })
   })
 
   test('TC-13-2: Given /vyom/me returns a limited options list When the panels load Then only the tiles in options are shown', async ({ page, deck }) => {
@@ -150,6 +157,16 @@ test.describe('Story 13 - conversational ask box', () => {
     const note = page.getByLabel('Ask Vyom').getByTestId('ask-config-problem')
     for (const row of rows) await expect(note).toContainText(row)
     for (const title of PANELS) await expect(panel(page, title)).toBeVisible()
+  })
+
+  test('TC-13-13: Given /vyom/me is 403 Then the /vyom/me slot shows the error state and the ask box stays', async ({ page, deck }) => {
+    deck.use('me', { status: 403, body: { options: { deploys: true }, config_problem: 'refused' } })
+    await openConsole(page)
+    const slot = page.getByRole('region', { name: '/vyom/me' })
+    await expect(slot.getByText('NOT BUILT', { exact: true })).toBeVisible()
+    await expect(slot.getByText('not permitted for your role')).toBeVisible()
+    await expect(page.getByText('refused')).toHaveCount(0)
+    await expect(page.getByLabel('Ask Vyom').getByPlaceholder('Ask a question...')).toBeEnabled()
   })
 
   test('TC-13-14: Given one panel endpoint returns 500 When the deck renders Then that panel shows its error and the other panels and the ask box still render', async ({ page, deck }) => {

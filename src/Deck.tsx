@@ -93,14 +93,7 @@ export function Deck() {
 
   useEffect(() => {
     get<Health>('/vyom/health').then(setHealth).catch(() => setHealth({ built: false, why: 'health unreachable' }))
-    get<MeResponse>('/vyom/me').then((response) => {
-      if (response.built) {
-        setMe(response)
-      } else {
-        // We need to create a proper Panel<MeResponse> for the state
-        setMe({ built: false, why: '/vyom/me unreachable' })
-      }
-    }).catch(() => setMe({ built: false, why: '/vyom/me unreachable' }))
+    get<MeResponse>('/vyom/me').then(setMe).catch(() => setMe({ built: false, why: '/vyom/me unreachable' }))
     loadModels()
     loadReleases()
   }, [loadModels, loadReleases])
@@ -172,12 +165,22 @@ export function Deck() {
           <Card title="Storage">
             {storage?.size !== undefined ? <div className="card-value">{storage.size}</div> : <NotBuilt panel={ABSENT('storage not reported')} />}
           </Card>
+          <Card title="Spend">
+            <NotBuilt panel={ABSENT('no spend endpoint yet')} />
+          </Card>
           <Card title="Latency">
             <NotBuilt panel={ABSENT('ask.py does not log duration yet')} />
           </Card>
         </div>
 
         <ModelsSection panel={models} onRetry={loadModels} />
+
+        {me && !me.built && (
+          <div className="cd-grid" role="region" aria-label="/vyom/me">
+            <div className="sp4 section-label" id="sec-me">/vyom/me</div>
+            <div className="card sp4"><NotBuilt panel={me} /></div>
+          </div>
+        )}
 
         {tiles.length > 0 && (
           <div className="cd-grid" role="region" aria-label="Tiles">

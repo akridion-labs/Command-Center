@@ -1,74 +1,11 @@
-# Slice 26: Knowledge Gaps Panel
+# Slice 13: Conversational ask box
 
-## Implementation Summary
-
-I have successfully implemented the knowledge gaps panel for Slice 26 of the Vyom Command Center project. This panel displays open questions from the `/vyom/gaps` endpoint on the dashboard.
-
-## Files Created/Modified
-
-### 1. `src/panels/Gaps.tsx` - Main Component
-- Implements the Knowledge Gaps panel that fetches data from `/vyom/gaps`
-- Displays question text, times asked, and last asked date
-- Sorts gaps newest first (most recent first)
-- Handles all required states: loading, built with data, empty, NOT BUILT, permission errors
-- Uses existing `PanelShell` and `NotBuilt` components for consistency
-
-### 2. `src/panels/Gaps.test.tsx` - Unit Tests  
-- Comprehensive test coverage for all acceptance criteria (TC-26-10 through TC-26-15)
-- Tests data rendering, sorting, empty state, loading state, and error handling
-- Follows project constraints (no `toBeInTheDocument`, uses proper assertion methods)
-
-### 3. `src/panels/Panels.tsx` - Dashboard Integration
-- Added import for the new Gaps panel component
-- Integrated the Gaps panel into the dashboard grid layout
-- Added the endpoint fetch hook for `/vyom/gaps`
-
-## Key Features Implemented
-
-### Data Handling
-- Fetches from `/vyom/gaps` endpoint using established API patterns
-- Parses response structure: `{built, count, gaps: [{question, times, last}]}` 
-- Sorts gaps by `last` date in descending order (newest first)
-
-### UI States
-- **Loading**: Shows "loading..." while fetching data
-- **Built with data**: Displays list of gaps with question, times asked, and last asked date
-- **Empty state**: Shows "No gaps found" when no gaps exist  
-- **NOT BUILT**: Shows appropriate reason from endpoint
-- **Permission error**: Displays "not permitted for your role" message
-
-### Error Handling
-- Network failures are handled gracefully with NOT BUILT state
-- Permission errors (403) display appropriate messages
-- 401 errors redirect to login as expected
-
-## Technical Details
-
-### Sorting Logic
-The gaps are sorted newest first using JavaScript's Date comparison:
-```javascript
-const sortedGaps = [...p.gaps].sort((a, b) => {
-  return new Date(b.last).getTime() - new Date(a.last).getTime()
-})
-```
-
-### Component Structure
-- Uses `PanelShell` for consistent panel layout and styling
-- Leverages existing `useEndpoint` hook for data fetching
-- Follows established patterns from other panels in the codebase
-
-### Testing Approach
-- All tests written using project's testing constraints 
-- Covers all acceptance criteria specified in the requirements
-- Validates sorting functionality works correctly
-- Tests edge cases including empty state and error conditions
+## Changes
+- `src/ask/AskBox.tsx`: follow-up turns send `history: [previous]` with the new query; a "loading…" state shows while `/vyom/ask` is pending; a failed call (network error, 500, bad JSON, 401/403) shows NOT BUILT with "/vyom/ask unreachable" and no answer or sources; answers list their `sources` labelled by tool name; a `configProblem` is shown near the sources.
+- `src/Deck.tsx`: passes `/vyom/me`'s `config_problem` to the AskBox; a `/vyom/me` that is not built, refused (403) or unreachable renders `<NotBuilt>` in a "/vyom/me" slot, with the server's `why` kept word for word; added a Spend tile that shows NOT BUILT (no endpoint).
+- Tests: `src/ask/Slice13AskBox.test.tsx` and `e2e/ask13.spec.ts` (TC-13-1 to TC-13-14).
 
 ## Verification
-
-✅ All unit tests pass (6/6)  
-✅ Panel integrates correctly into dashboard grid  
-✅ Builds successfully without errors  
-✅ Follows existing code patterns and conventions  
-✅ Handles all required states per specification  
-
-The implementation is complete and ready for use in the Vyom Command Center dashboard.
+- `npx vitest run src/ask` and `npx playwright test --grep-invert @visual ask13` were run after the last change.
+- TC-13-12 is a `@visual` test with a new screenshot baseline that has not been approved yet; it was not run.
+- The full test suite was not run for this rework.

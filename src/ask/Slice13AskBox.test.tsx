@@ -110,6 +110,7 @@ describe('Slice 13 - Conversational ask box', () => {
     const holders = [
       screen.getByRole('img', { name: 'GPU gauge' }).closest('.gauge')!,
       screen.getByRole('img', { name: 'SYSTEM gauge' }).closest('.gauge')!,
+      screen.getByText('Spend').closest('.card')!,
       screen.getByText('Latency').closest('.card')!,
       // the brief's eyebrow names the window ("24h"), so check its value area only
       screen.getByText(/Ojas brief/).closest('.glass')!.querySelector('.not-built')!,
@@ -260,18 +261,38 @@ describe('Slice 13 - Conversational ask box', () => {
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toContain('Health')
   })
 
-  it('TC-13-13: given /vyom/me is 401 Then no tiles or config problem from the refused call show and the ask box stays', async () => {
+  it('TC-13-13: given /vyom/me is 403 Then the /vyom/me slot shows the error state with the server reason and the ask box stays', async () => {
+    serveDeck({ '/vyom/me': () => json({ options: { deploys: true }, config_problem: 'refused' }, 403) })
+    render(<Deck />)
+
+    const slot = await screen.findByRole('region', { name: '/vyom/me' })
+    expect(slot.textContent).toContain('NOT BUILT')
+    expect(slot.textContent).toContain('not permitted for your role')
+    expect(tileTitles()).toEqual([])
+    expect(screen.queryByText(/refused/)).toBeNull()
+    expect(box().disabled).toBe(false)
+  })
+
+  it('TC-13-13: given /vyom/me returns built:false Then the /vyom/me slot shows NOT BUILT and the why word for word', async () => {
+    serveDeck({ '/vyom/me': () => json({ built: false, why: 'roles not yet built' }) })
+    render(<Deck />)
+
+    const slot = await screen.findByRole('region', { name: '/vyom/me' })
+    expect(slot.textContent).toContain('NOT BUILT')
+    expect(slot.textContent).toContain('roles not yet built')
+  })
+
+  it('TC-13-13: given /vyom/me is 401 Then it redirects to login and shows no tiles or config problem from the refused call', async () => {
+    let href = ''
+    vi.stubGlobal('location', { origin: 'http://localhost', get href() { return href }, set href(v: string) { href = v } })
     serveDeck({ '/vyom/me': () => json({ options: { deploys: true }, config_problem: 'refused' }, 401) })
     render(<Deck />)
 
-    await waitFor(() => expect(mockFetch.mock.calls.some(([u]) => u === '/vyom/me')).toBe(true))
-    // Wait for the error state to be processed
-    await new Promise((r) => setTimeout(r, 50))
-
-    // With a 401, we should show the NOT BUILT state for the me response, but no tiles or config problem should appear
+    await waitFor(() => expect(href).toBe('/vyom/login'))
+    await screen.findByText('/vyom/me unreachable')
     expect(tileTitles()).toEqual([])
     expect(screen.queryByText(/refused/)).toBeNull()
-    expect(box()).toBeTruthy()
+    expect(box().disabled).toBe(false)
 
     // The ask box should still be functional and not show error state
     const askBox = screen.getByLabelText('Ask Vyom')
