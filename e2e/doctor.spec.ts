@@ -100,7 +100,7 @@ test.describe('Story 20 - Doctor Panel', () => {
     expect(await doctor.locator('p').first().textContent()).toBe(why('doctor-not-built.json'))
   })
 
-  test('TC-20-11: Given a check has status "owe" When the user views the doctor panel Then the owe status is properly displayed', async ({ page, deck }) => {
+  test('TC-20-11: Given a check is not ok and has nothing to run When the user views the doctor panel Then it shows as failing with no empty command', async ({ page, deck }) => {
     // /vyom/doctor reports ok true/false only; a not-ok check with nothing to run still shows as failing, with no empty command
     deck.use('doctor', { body: { at: '2026-10-01T08:00:00Z', checks: [{ name: 'Pending review', ok: false }] } })
     await openConsole(page)

@@ -24,6 +24,7 @@ export function useEndpoint<T>(path: string): Panel<T> | null {
 }
 
 type Row = Record<string, unknown>
+const obj = (v: unknown): Row => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Row) : {})
 const txt = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : JSON.stringify(v))
 const list = (v: unknown): Row[] => (Array.isArray(v) ? (v as Row[]) : [])
 
@@ -77,8 +78,8 @@ export function QuotaPanel({ panel }: { panel: Panel<Row> | null }) {
     <PanelShell title="Quota" panel={panel}>
       {(p) => {
         if (!p.built) return null
-        const storage = (p.storage ?? {}) as Row
-        const usage = (p.usage ?? {}) as Row
+        const storage = obj(p.storage)
+        const usage = obj(p.usage)
         return (
           <>
             <div className="eyebrow">Storage</div>
