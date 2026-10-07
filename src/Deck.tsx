@@ -6,22 +6,11 @@ import { AskBox } from './ask/AskBox'
 import { Background } from './scene/Background'
 import { Tile } from './tiles'
 import { ModelsSection, type ModelsResponse } from './models/Models'
+import { ReleasesSection, loadReleases } from './models/Releases'
 import './design/deck.css'
 
-export interface Release {
-  version: string
-  date: string
-  since: string
-  commits: string[]
-  slices: Array<{
-    id: string
-    title: string
-    commit: string
-    date: string
-    tests: number
-  }>
-  fixes: string[]
-  other: string[]
+interface QuotaResponse {
+  usage?: { built?: boolean; why?: string; value?: string | number; used?: string | number }
 }
 
 interface MeResponse {
@@ -65,7 +54,8 @@ export function Deck() {
   const [health, setHealth] = useState<Panel<Health> | null>(null)
   const [me, setMe] = useState<Panel<MeResponse> | null>(null)
   const [models, setModels] = useState<Panel<ModelsResponse> | null>(null)
-  const [releases, setReleases] = useState<Panel<{ releases: Release[] }> | null>(null)
+  const [releases, setReleases] = useState<Panel<{ releases: unknown[] }> | null>(null)
+  const [quota, setQuota] = useState<Panel<QuotaResponse> | null>(null)
   const [range, setRange] = useState('24h')
 
   const loadModels = useCallback(() => {
@@ -73,33 +63,22 @@ export function Deck() {
     get<ModelsResponse>('/vyom/models').then(setModels).catch(() => setModels({ built: false, why: '/vyom/models unreachable' }))
   }, [])
 
-  const loadReleases = useCallback(() => {
+  const refreshReleases = useCallback(() => {
     setReleases(null)
-    // Fetch from the static releases.json file in console directory
-    fetch('/console/releases.json')
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        return response.json()
-      })
-      .then((data: unknown) => {
-        if (Array.isArray(data)) {
-          setReleases({ built: true, releases: data })
-        } else {
-          setReleases({ built: false, why: '/console/releases.json is not an array' })
-        }
-      })
-      .catch(() => setReleases({ built: false, why: '/console/releases.json unreachable' }))
+    loadReleases().then(setReleases)
   }, [])
 
   useEffect(() => {
     get<Health>('/vyom/health').then(setHealth).catch(() => setHealth({ built: false, why: 'health unreachable' }))
     get<MeResponse>('/vyom/me').then(setMe).catch(() => setMe({ built: false, why: '/vyom/me unreachable' }))
     loadModels()
-    loadReleases()
-  }, [loadModels, loadReleases])
+    get<QuotaResponse>('/vyom/quota').then(setQuota).catch(() => setQuota({ built: false, why: '/vyom/quota unreachable' }))
+    refreshReleases()
+  }, [loadModels, refreshReleases])
 
   const model = health?.built ? health.model : undefined
-  const storage = health?.built ? health.storage : undefined
+  const usage = quota?.built ? quota.usage : undefined
+  const cloudQuota = usage && usage.built !== false ? (usage.value ?? usage.used) : undefined
   const modelNames = models?.built ? models.models.map((m) => m.name) : []
   const defaultModel = models?.built ? models.default : ''
 
@@ -160,10 +139,7 @@ export function Deck() {
             {model ? <div className="card-value mono" style={{ fontSize: 26 }}>{model}</div> : <NotBuilt panel={ABSENT('model not reported by /vyom/health')} />}
           </Card>
           <Card title="Cloud quota">
-            {storage?.size !== undefined ? <div className="card-value">{storage.size}</div> : <NotBuilt panel={ABSENT('quota not reported')} />}
-          </Card>
-          <Card title="Storage">
-            {storage?.size !== undefined ? <div className="card-value">{storage.size}</div> : <NotBuilt panel={ABSENT('storage not reported')} />}
+            {cloudQuota !== undefined ? <div className="card-value">{cloudQuota}</div> : <NotBuilt panel={ABSENT(usage?.why || 'quota not reported')} />}
           </Card>
           <Card title="Spend">
             <NotBuilt panel={ABSENT('no spend endpoint yet')} />
@@ -198,30 +174,7 @@ export function Deck() {
           <AskBox models={modelNames} defaultModel={defaultModel} configProblem={me?.built ? me.config_problem || null : null} />
         </div>
 
-        {releases && (
-          <div className="cd-grid">
-            <div className="sp4 section-label" id="sec-releases">Releases</div>
-            {releases.built ? (
-              <div className="card sp2" aria-label="Release History">
-                <div className="card-title">Release History</div>
-                <ul>
-                  {releases.releases.map((release, index) => (
-                    <li key={index}>
-                      <div className="eyebrow">{release.version} • {release.date}</div>
-                      <p>{release.since}</p>
-                      <p>Commits: {release.commits.join(', ')}</p>
-                      <p>Slices: {release.slices.length}</p>
-                      <p>Fixes: {release.fixes.length}</p>
-                      <p>Other: {release.other.length}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <NotBuilt panel={releases} />
-            )}
-          </div>
-        )}
+        <ReleasesSection panel={releases} />
 
         <Panels />
       </div>
