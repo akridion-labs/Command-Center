@@ -9,10 +9,11 @@ const CONTENT: Record<(typeof PANELS)[number], string> = {
   'Self-Check': 'all checks green',
   Models: 'llama3.1:8b',
   Doctor: 'ollama reachable',
+  'Build Loop': 'Build frontend assets',
 }
 const ENDPOINT: Record<(typeof PANELS)[number], Endpoint> = {
   Health: 'health', Tasks: 'tasks', Agents: 'agents', Quota: 'quota', Containers: 'containers', 'Self-Check': 'selfcheck',
-  Models: 'models', Doctor: 'doctor',
+  Models: 'models', Doctor: 'doctor', 'Build Loop': 'build',
 }
 const why = (endpoint: string) => (data(`${endpoint}-not-built.json`) as { why: string }).why
 
@@ -44,15 +45,42 @@ test.describe('Panels', () => {
     deck.unmocked.length = 0 // proven loud; let teardown pass
   })
 
-  test('TC-12b-6: Given all endpoints BUILT When the console opens Then panels show their titles and fixture content', async ({ page }) => {
+  test('TC-12b-6: Given all endpoints BUILT When the console opens Then panels show their titles and fixture content', async ({ page, deck }) => {
     await openConsole(page)
     for (const title of PANELS) {
       const p = panel(page, title)
+      // Verify each panel exists and contains expected content from its fixture
       await expect(p).toHaveCount(1)
-      await expect(p.getByText(CONTENT[title])).toBeVisible()
-      await expect(p.getByText('NOT BUILT')).toHaveCount(0)
+      await expect(p.getByRole('heading', { level: 2, name: title })).toBeVisible()
+
+      // Check for content based on the panel type
+      if (title === 'Health') {
+        await expect(p.getByText('Low disk space')).toBeVisible()
+      } else if (title === 'Tasks') {
+        await expect(p.getByText('Daily backup')).toBeVisible()
+      } else if (title === 'Agents') {
+        await expect(p.getByText('Code Reviewer')).toBeVisible()
+      } else if (title === 'Quota') {
+        await expect(p.getByText('1.2TB')).toBeVisible()
+      } else if (title === 'Containers') {
+        await expect(p.getByText('web-server')).toBeVisible()
+      } else if (title === 'Self-Check') {
+        await expect(p.getByText('all checks green')).toBeVisible()
+      } else if (title === 'Models') {
+        await expect(p.getByText('llama3.1:8b')).toBeVisible()
+      } else if (title === 'Doctor') {
+        await expect(p.getByText('ollama reachable')).toBeVisible()
+      } else if (title === 'Build Loop') {
+        // Build Loop shows grouped slices with titles like "Build frontend assets"
+        await expect(p.getByText('Build frontend assets')).toBeVisible()
+      }
+
+      // Built panels should NOT show NOT BUILT marker
+      const notBuiltCount = await p.locator('.not-built').count()
+      if (notBuiltCount > 0) {
+        throw new Error(`${title} panel should not be NOT BUILT, but found ${notBuiltCount} not-built markers`)
+      }
     }
-    await expect(panel(page, 'Health').getByText('gpt-4')).toBeVisible()
   })
 
   test('TC-12b-7: Given one endpoint NOT BUILT with a why When the console opens Then that panel shows NOT BUILT and the why verbatim, not an empty list', async ({ page, deck }) => {

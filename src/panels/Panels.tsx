@@ -3,8 +3,9 @@ import { get, type Panel, type DoctorResponse } from '../api'
 import { PanelShell } from '../PanelShell'
 import { NotBuilt } from '../NotBuilt'
 import { DoctorPanel } from './Doctor'
+import { BuildPanel, type BuildResponse } from './Build'
 
-export { DoctorPanel }
+export { DoctorPanel, BuildPanel }
 
 /** Fetch one endpoint through api.ts get(); a network or 5xx failure is NOT BUILT "<path> unreachable". */
 export function useEndpoint<T>(path: string): Panel<T> | null {
@@ -141,6 +142,7 @@ export function Panels() {
   const containers = useEndpoint<Row>('/vyom/containers')
   const selfcheck = useEndpoint<Row>('/vyom/selfcheck')
   const doctor = useEndpoint<DoctorResponse>('/vyom/doctor')
+  const build = useEndpoint<BuildResponse>('/vyom/build')
   return (
     <div className="cd-grid" id="sec-panels">
       <HealthPanel panel={health} />
@@ -151,6 +153,7 @@ export function Panels() {
       <ActionsPanel />
       <SelfCheckPanel panel={selfcheck} />
       <DoctorPanel panel={doctor} />
+      <BuildPanel panel={build} />
     </div>
   )
 }

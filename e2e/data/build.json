@@ -1,0 +1,14 @@
+{
+  "built": true,
+  "slices": [
+    { "id": "21", "title": "Build frontend assets", "state": "done", "status": "proof passed, ticked", "next": "" },
+    { "id": "22", "title": "Night report panel", "state": "parked", "status": "parked: waits on /vyom/night", "next": "" },
+    { "id": "23", "title": "Gaps panel", "state": "look", "status": "built, waiting for your look", "next": "ojas build --look 23" },
+    { "id": "24", "title": "Build loop panel", "state": "needs_you", "status": "proof failed twice, needs you", "next": "ojas build --why 24" },
+    { "id": "25", "title": "Models fit column", "state": "reopened", "status": "reopened after review", "next": "" },
+    { "id": "26", "title": "Deck layout pass", "state": "yours", "status": "yours to build by hand", "next": "" },
+    { "id": "27", "title": "Ask history", "state": "todo", "status": "not started", "next": "ojas build --slice 27" }
+  ],
+  "count": { "done": 1, "parked": 1, "look": 1, "needs_you": 1, "reopened": 1, "yours": 1, "todo": 1 },
+  "finished_by": { "claude-opus-5-5": 3, "qwen2.5-coder:7b": 1 }
+}
