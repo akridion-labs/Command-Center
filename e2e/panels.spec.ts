@@ -10,10 +10,11 @@ const CONTENT: Record<(typeof PANELS)[number], string> = {
   Models: 'llama3.1:8b',
   Doctor: 'ollama reachable',
   'Build Loop': 'Build frontend assets',
+  'Night Report': 'slice 24 done',
 }
 const ENDPOINT: Record<(typeof PANELS)[number], Endpoint> = {
   Health: 'health', Tasks: 'tasks', Agents: 'agents', Quota: 'quota', Containers: 'containers', 'Self-Check': 'selfcheck',
-  Models: 'models', Doctor: 'doctor', 'Build Loop': 'build',
+  Models: 'models', Doctor: 'doctor', 'Build Loop': 'build', 'Night Report': 'night',
 }
 const why = (endpoint: string) => (data(`${endpoint}-not-built.json`) as { why: string }).why
 
@@ -73,6 +74,8 @@ test.describe('Panels', () => {
       } else if (title === 'Build Loop') {
         // Build Loop shows grouped slices with titles like "Build frontend assets"
         await expect(p.getByText('Build frontend assets')).toBeVisible()
+      } else if (title === 'Night Report') {
+        await expect(p.getByText('slice 24 done')).toBeVisible()
       }
 
       // Built panels should NOT show NOT BUILT marker
