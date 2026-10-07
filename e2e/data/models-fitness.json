@@ -1,0 +1,44 @@
+{
+  "built": true,
+  "default": "qwen2.5-coder:14b",
+  "models": [
+    {
+      "name": "qwen2.5-coder:14b",
+      "default": true,
+      "fit": true,
+      "tests": ["test1.ts", "test2.ts"]
+    },
+    {
+      "name": "llama3.1:8b",
+      "default": false,
+      "fit": false,
+      "fit_why": "model failed to load required libraries",
+      "tests": ["test3.ts"]
+    },
+    {
+      "name": "gemma2:2b",
+      "default": false,
+      "tests": []
+    }
+  ],
+  "build_loop_evidence": {
+    "qwen2.5-coder:14b": {
+      "calls": 120,
+      "minutes": 95,
+      "slices_ok": 12,
+      "first_try": 9
+    },
+    "llama3.1:8b": {
+      "calls": 40,
+      "minutes": 31,
+      "slices_ok": 4,
+      "first_try": 1
+    },
+    "gemma2:2b": {
+      "calls": 5,
+      "minutes": 2,
+      "slices_ok": 1,
+      "first_try": 1
+    }
+  }
+}

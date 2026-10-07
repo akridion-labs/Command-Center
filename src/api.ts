@@ -77,6 +77,9 @@ export async function doctor(): Promise<Panel<DoctorResponse>> {
 export interface Model {
   name: string
   default: boolean
+  fit?: boolean
+  fit_why?: string
+  tests?: string[]
 }
 
 export interface BuildLoopEvidence {

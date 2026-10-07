@@ -116,3 +116,43 @@ button:focus-visible, a:focus-visible { outline: 2px solid #39c6ff; outline-offs
 
 .notbuilt-tag { color: #ffb454; background: rgba(255, 180, 84, 0.1); }
 .livedot { width: 10px; height: 10px; border-radius: 50%; background: #39d98a; box-shadow: 0 0 10px #39d98a; animation: pulse 1.8s infinite; }
+
+/* Model fitness indicators */
+.fit-status {
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 6px;
+}
+.fit-status.fit {
+  color: #39d98a;
+  background: rgba(57, 217, 138, 0.1);
+}
+.fit-status.unfit {
+  color: #ff4b33;
+  background: rgba(255, 75, 51, 0.1);
+}
+.fit-status.not-checked {
+  color: #ffb454;
+  background: rgba(255, 180, 84, 0.1);
+}
+.fit-why {
+  font-size: 12px;
+  margin-top: 4px;
+  color: #8695a8;
+}
+.model-tests {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.test-item {
+  font-size: 12px;
+  margin-bottom: 2px;
+  color: #7f8fa3;
+}
+.no-tests {
+  color: #7f8fa3;
+  font-size: 12px;
+}

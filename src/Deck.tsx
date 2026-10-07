@@ -107,10 +107,9 @@ export function Deck() {
 
   const model = health?.built ? health.model : undefined
   const storage = health?.built ? health.storage : undefined
-  const chunks = health?.built ? health.vault?.total_chunks : undefined
-
+  const modelNames = models?.built ? models.models.map((m) => m.name) : []
   const defaultModel = models?.built ? models.default : ''
-  const modelNames = models?.built ? models.models.map(m => m.name) : []
+
   // Convenience, not security: the server still decides what each role may do.
   const tiles = me?.built ? Object.entries(me.options ?? {}).filter(([, on]) => Boolean(on)) : []
 
@@ -173,13 +172,12 @@ export function Deck() {
           <Card title="Storage">
             {storage?.size !== undefined ? <div className="card-value">{storage.size}</div> : <NotBuilt panel={ABSENT('storage not reported')} />}
           </Card>
-          <Card title="Vault chunks">
-            {chunks !== undefined ? <div className="card-value">{chunks}</div> : <NotBuilt panel={ABSENT('chunks not reported')} />}
-          </Card>
           <Card title="Latency">
             <NotBuilt panel={ABSENT('ask.py does not log duration yet')} />
           </Card>
         </div>
+
+        <ModelsSection panel={models} onRetry={loadModels} />
 
         {tiles.length > 0 && (
           <div className="cd-grid" role="region" aria-label="Tiles">
@@ -196,8 +194,6 @@ export function Deck() {
           <div className="sp4 section-label" id="sec-ask">Ask Vyom</div>
           <AskBox models={modelNames} defaultModel={defaultModel} configProblem={me?.built ? me.config_problem || null : null} />
         </div>
-
-        <ModelsSection panel={models} onRetry={loadModels} />
 
         {releases && (
           <div className="cd-grid">

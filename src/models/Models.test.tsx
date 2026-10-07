@@ -54,14 +54,14 @@ describe('Model console', () => {
   it('TC-21-15: models panel lists each local model, marks the default, and shows calls, minutes, slices ok and first-try %', () => {
     render(<ModelsPanel panel={MODELS} />)
     expect(screen.getByText('qwen2.5-coder:14b', { selector: '.card-note .mono' }).textContent).toBe('qwen2.5-coder:14b')
-    expect(cells('qwen2.5-coder:14b')).toEqual(['qwen2.5-coder:14b default', '120', '95', '12', '75%'])
-    expect(cells('llama3.1:8b')).toEqual(['llama3.1:8b', '40', '31', '4', '25%'])
+    expect(cells('qwen2.5-coder:14b')).toEqual(['qwen2.5-coder:14b default', '120', '95', '12', '75%', 'not checked', 'No tests'])
+    expect(cells('llama3.1:8b')).toEqual(['llama3.1:8b', '40', '31', '4', '25%', 'not checked', 'No tests'])
     expect(document.querySelectorAll('tbody tr').length).toBe(2)
   })
 
   it('TC-21-15: a model with no build-loop evidence shows dashes, and first-try % never divides by zero', () => {
     render(<ModelsPanel panel={{ ...MODELS, build_loop_evidence: {} }} />)
-    expect(cells('llama3.1:8b')).toEqual(['llama3.1:8b', '-', '-', '-', '-'])
+    expect(cells('llama3.1:8b')).toEqual(['llama3.1:8b', '-', '-', '-', '-', 'not checked', 'No tests'])
     expect(firstTryPercent({ calls: 3, minutes: 2, slices_ok: 0, first_try: 0 })).toBe('-')
   })
 
