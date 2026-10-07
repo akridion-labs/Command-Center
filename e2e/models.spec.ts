@@ -1,6 +1,7 @@
 import { test, expect, panel, openConsole, data, type Deck } from './fixtures'
 
 const why = (file: string) => (data(file) as { why: string }).why
+const FITNESS = { body: data('models-fitness.json') }
 const posted = (deck: Deck) => deck.served.filter((s) => s.path === '/vyom/ask').map((s) => JSON.parse(s.postData ?? '{}'))
 
 test.describe('Model console', () => {
@@ -32,8 +33,8 @@ test.describe('Model console', () => {
     await openConsole(page)
     const models = panel(page, 'Models')
     const row = (name: string) => models.locator(`tr[data-model="${name}"] td`)
-    expect(await row('qwen2.5-coder:14b').allTextContents()).toEqual(['qwen2.5-coder:14b default', '120', '95', '12', '75%'])
-    expect(await row('llama3.1:8b').allTextContents()).toEqual(['llama3.1:8b', '40', '31', '4', '25%'])
+    expect(await row('qwen2.5-coder:14b').allTextContents()).toEqual(['qwen2.5-coder:14b default', '120', '95', '12', '75%', 'not checked', 'No tests'])
+    expect(await row('llama3.1:8b').allTextContents()).toEqual(['llama3.1:8b', '40', '31', '4', '25%', 'not checked', 'No tests'])
     await expect(models.getByText('Default model:')).toBeVisible()
   })
 
@@ -92,5 +93,98 @@ test.describe('Model console', () => {
     await page.getByRole('button', { name: 'Retry' }).click()
     await expect(models.locator('tr[data-model="llama3.1:8b"]')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Retry' })).toHaveCount(0)
+  })
+
+  test('TC-28-01: AC1 - Given a model panel When the user views it Then each model shows a fit status indicator', async ({ page, deck }) => {
+    deck.use('models', FITNESS)
+    await openConsole(page)
+    const models = panel(page, 'Models')
+    const fit = (name: string) => models.locator(`tr[data-model="${name}"] .fit-status`)
+    expect(await fit('qwen2.5-coder:14b').textContent()).toBe('✓')
+    expect(await fit('llama3.1:8b').textContent()).toBe('✗')
+    expect(await fit('gemma2:2b').textContent()).toBe('not checked')
+  })
+
+  test('TC-28-09: AC5 - Given /vyom/models errors When the user views the panel Then it says unreachable with Retry', async ({ page, deck }) => {
+    deck.use('models', { status: 500, body: { error: 'boom' } })
+    await openConsole(page)
+    const models = panel(page, 'Models')
+    expect(await models.locator('p').first().textContent()).toBe('/vyom/models unreachable')
+    await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible()
+    await expect(models.locator('.fit-status')).toHaveCount(0)
+  })
+
+  test('TC-28-10: AC5 - Given the endpoint is not built When the user views the panel Then NOT BUILT shows its why', async ({ page, deck }) => {
+    deck.use('models', 'not-built')
+    await openConsole(page)
+    const models = panel(page, 'Models')
+    await expect(models.getByText('NOT BUILT', { exact: true })).toBeVisible()
+    expect(await models.locator('p').first().textContent()).toBe(why('models-not-built.json'))
+  })
+
+  test('TC-28-11: AC5 - Given access is denied When the user views the panel Then it says not permitted for your role', async ({ page, deck }) => {
+    deck.use('models', { status: 403, body: { error: 'forbidden' } })
+    await openConsole(page)
+    const models = panel(page, 'Models')
+    expect(await models.locator('p').first().textContent()).toBe('not permitted for your role')
+    await expect(models.locator('table')).toHaveCount(0)
+  })
+
+  test('TC-28-12: AC5 - Given no models exist When the user views the panel Then it says so', async ({ page, deck }) => {
+    deck.use('models', { body: { default: '', models: [], build_loop_evidence: {} } })
+    await openConsole(page)
+    const models = panel(page, 'Models')
+    await expect(models.getByText('no local models installed')).toBeVisible()
+    await expect(models.locator('table')).toHaveCount(0)
+  })
+
+  test('TC-28-13: AC5 - Given /vyom/models has not answered yet When the user views the panel Then it shows loading', async ({ page }) => {
+    let release: () => void = () => {}
+    const held = new Promise<void>((r) => { release = r })
+    await page.route('**/vyom/models', async (route) => { await held; await route.fallback() })
+    await page.goto('./')
+    await expect(panel(page, 'Models').getByText('loading…')).toBeVisible()
+    release()
+    await expect(panel(page, 'Models').locator('tr[data-model="llama3.1:8b"]')).toBeVisible()
+  })
+
+  test('TC-28-02: AC2 - Given an unfit model When the user views it Then fit_why explains why the model is not fit', async ({ page, deck }) => {
+    deck.use('models', FITNESS)
+    await openConsole(page)
+    const models = panel(page, 'Models')
+
+    // Check that fit_why text is visible for the unfit model
+    await expect(models.getByText('model failed to load required libraries')).toBeVisible()
+  })
+
+  test('TC-28-03: AC3 - Given a model has no fitness data When the user views it Then "not checked" appears as the fit status', async ({ page, deck }) => {
+    deck.use('models', FITNESS)
+    await openConsole(page)
+    const models = panel(page, 'Models')
+
+    // Check that "not checked" is visible for the model with no fitness data
+    await expect(models.getByText('not checked')).toBeVisible()
+  })
+
+  test('TC-28-04: AC4 - Given the user views a model When they see tests Then each test is associated with that specific model', async ({ page, deck }) => {
+    deck.use('models', FITNESS)
+    await openConsole(page)
+    const models = panel(page, 'Models')
+
+    // Check that tests are visible for each model
+    await expect(models.getByText('test1.ts')).toBeVisible()
+    await expect(models.getByText('test2.ts')).toBeVisible()
+    await expect(models.getByText('test3.ts')).toBeVisible()
+  })
+
+  test('TC-28-14: AC5 - Given the user views the panel When they see fit indicators Then ✓ and ✗ icons are clearly distinguishable', async ({ page, deck }) => {
+    deck.use('models', FITNESS)
+    await openConsole(page)
+    const models = panel(page, 'Models')
+
+    // Check that different fit status indicators are visible
+    await expect(models.getByText('✓')).toBeVisible()
+    await expect(models.getByText('✗')).toBeVisible()
+    await expect(models.getByText('not checked')).toBeVisible()
   })
 })

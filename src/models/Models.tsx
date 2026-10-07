@@ -4,6 +4,10 @@ import { PanelShell } from '../PanelShell'
 export interface Model {
   name: string
   default: boolean
+  /** From `ojas models-check`: can this model do the build loop's work? Absent = not checked. */
+  fit?: boolean
+  fit_why?: string
+  tests?: string[]
 }
 
 export interface BuildLoopEvidence {
@@ -19,10 +23,31 @@ export interface ModelsResponse {
   build_loop_evidence: Record<string, BuildLoopEvidence>
 }
 
-/** first_try counts slices that passed on the first try, out of slices_ok. */
 export function firstTryPercent(e: BuildLoopEvidence | undefined): string {
   if (!e || !e.slices_ok) return '-'
   return `${Math.round((e.first_try / e.slices_ok) * 100)}%`
+}
+
+function Fitness({ model }: { model: Model }) {
+  if (model.fit === true) return <span className="fit-status fit" title="can do the build loop's work">✓</span>
+  if (model.fit === false) {
+    return (
+      <>
+        <span className="fit-status unfit" title="cannot do the build loop's work">✗</span>
+        {model.fit_why && <div className="fit-why">{model.fit_why}</div>}
+      </>
+    )
+  }
+  return <span className="fit-status not-checked">not checked</span>
+}
+
+function Tests({ tests }: { tests: string[] | undefined }) {
+  if (!tests?.length) return <span className="no-tests">No tests</span>
+  return (
+    <ul className="model-tests">
+      {tests.map((t) => <li key={t} className="test-item mono">{t}</li>)}
+    </ul>
+  )
 }
 
 export function ModelsPanel({ panel }: { panel: Panel<ModelsResponse> | null }) {
@@ -36,7 +61,7 @@ export function ModelsPanel({ panel }: { panel: Panel<ModelsResponse> | null }) 
             <div className="card-note">Default model: <span className="mono">{p.default}</span></div>
             <table className="model-table" aria-label="Build loop evidence">
               <thead>
-                <tr><th>Model</th><th>Calls</th><th>Minutes</th><th>Slices OK</th><th>First try</th></tr>
+                <tr><th>Model</th><th>Calls</th><th>Minutes</th><th>Slices OK</th><th>First try</th><th>Fit</th><th>Tests</th></tr>
               </thead>
               <tbody>
                 {p.models.map((m) => {
@@ -48,6 +73,8 @@ export function ModelsPanel({ panel }: { panel: Panel<ModelsResponse> | null }) 
                       <td>{e ? e.minutes : '-'}</td>
                       <td>{e ? e.slices_ok : '-'}</td>
                       <td>{firstTryPercent(e)}</td>
+                      <td><Fitness model={m} /></td>
+                      <td><Tests tests={m.tests} /></td>
                     </tr>
                   )
                 })}

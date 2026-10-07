@@ -20,7 +20,7 @@ export function useEndpoint<T>(path: string): Panel<T> | null {
     })
     return () => { live = false }
   }, [path])
-  return panel
+  return panel as Panel<T> | null
 }
 
 type Row = Record<string, unknown>

@@ -73,7 +73,7 @@ test.describe('Story 20 - Doctor Panel', () => {
     const models = panel(page, 'Models')
     expect(await models.locator('tr[data-model="llama3.1:8b"] td').first().textContent()).toBe('llama3.1:8b default')
     expect(await models.locator('tr[data-model="gemma:7b"] td').first().textContent()).toBe('gemma:7b')
-    expect(await models.locator('tr[data-model="llama3.1:8b"] td').allTextContents()).toEqual(['llama3.1:8b default', '45', '120', '12', '75%'])
+    expect(await models.locator('tr[data-model="llama3.1:8b"] td').allTextContents()).toEqual(['llama3.1:8b default', '45', '120', '12', '75%', 'not checked', 'No tests'])
   })
 
   test('TC-20-7: Given the panel shows releases When the user views the doctor panel Then release history from /console/releases.json is displayed', async ({ page }) => {
@@ -138,8 +138,8 @@ test.describe('Story 20 - Doctor Panel', () => {
     await openConsole(page)
     const models = panel(page, 'Models')
     const cells = async (name: string) => models.locator(`tr[data-model="${name}"] td`).allTextContents()
-    expect((await cells('llama3.1:8b')).slice(2)).toEqual(['120', '12', '75%'])
-    expect((await cells('gemma:7b')).slice(2)).toEqual(['45', '4', '25%'])
+    expect((await cells('llama3.1:8b')).slice(2)).toEqual(['120', '12', '75%', 'not checked', 'No tests'])
+    expect((await cells('gemma:7b')).slice(2)).toEqual(['45', '4', '25%', 'not checked', 'No tests'])
   })
 
   test('TC-20-15: Given releases.json contains data When the user views the doctor panel Then release history is properly displayed with version, date, and commits', async ({ page }) => {
