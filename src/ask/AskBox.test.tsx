@@ -30,7 +30,7 @@ function sourceItems(): HTMLLIElement[] {
 function makeSources(n: number, prefix = 'S'): Source[] {
   return Array.from({ length: n }, (_, i) => ({
     title: `${prefix} title ${i + 1}`,
-    url: `https://docs.example/${prefix}/${i + 1}`,
+    url: `/docs/${prefix}/${i + 1}`,
     snippet: `${prefix} snippet ${i + 1}`,
   }))
 }
@@ -293,7 +293,7 @@ describe('AskBox', () => {
   })
 
   it('TC-6-16: blank title falls back to url and snippet HTML renders as literal text', async () => {
-    const url = 'https://docs.example/untitled'
+    const url = '/docs/untitled'
     mockFetch.mockResolvedValueOnce(json({
       answer: 'A',
       sources: [
@@ -337,7 +337,7 @@ describe('AskBox', () => {
     const longSnippet = 'snippetwithoutspaces'.repeat(500)
     mockFetch.mockResolvedValueOnce(json({
       answer: longAnswer,
-      sources: [{ title: 'T', url: 'https://docs.example/long', snippet: longSnippet }],
+      sources: [{ title: 'T', url: '/docs/long', snippet: longSnippet }],
     }))
     render(<AskBox />)
 
