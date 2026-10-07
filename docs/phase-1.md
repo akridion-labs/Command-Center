@@ -67,6 +67,11 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 26 | **knowledge gaps panel**: the open questions from `/vyom/gaps` (question, times asked, last asked), newest first; zero gaps says so; tests in `src/panels/Gaps.test.tsx` | §9 | ✅ 2026-10-07 c46fb3e (coder-dev), reviewed 2026-10-07 | `npx vitest run src/panels/Gaps` |
 | 27 | **safe links**: a URL from the server becomes a link only if it is relative or http(s) on this deck's own origin - anything else shows as plain text with its address; ONE shared helper `src/safeUrl.ts` used by every place that renders a server URL; tests in `src/safeUrl.test.ts` | §9 | ✅ 2026-10-07 6f9b2fd (coder-dev→qwen3-coder-30b-ojas128k→qwen3.5-dev→gemma4-12b-it-q4_K_M-ojas128k→qwen3.5-9b-q4_K_M-ojas128k+think→claude-plan(opus)), reviewed 2026-10-07 | `npx vitest run src/safeUrl` |
 | 28 | **model fitness in the model console**: next to each model show `fit` / `fit_why` from `/vyom/models` (✓ can do the build loop's work · ✗ and why · "not checked" when absent); tests in `src/models/` | §9 | ✅ 2026-10-07 67d3f21 (coder-dev→qwen3-coder-30b-ojas128k→qwen3.5-dev→gemma4-12b-it-q4_K_M-ojas128k→qwen3.5-9b-q4_K_M-ojas128k+think→claude-plan(opus)), reviewed 2026-10-07 | `npx vitest run src/models` |
+| 29 | **slice actions**: in the build panel (24), buttons that POST `/vyom/act` - **Approve** on a 👀 row; **Reopen** (a note is required) and **Defer** (a reason is required) on any row not done; each asks to confirm, is disabled while it runs, then shows `ok` and the last lines of `output` in monospace and refetches `/vyom/build`; 409 "a build is running" and 403 shown as text; tests in `src/panels/BuildActions.test.tsx` | §10 | ⬜ | `npx vitest run src/panels/BuildActions` 👀 approve one slice from the deck |
+| 30 | **doctor fix button**: in the Doctor panel, "Fix the safe ones" → `/vyom/act` `doctor_fix`; confirm first, show its output, then refetch `/vyom/doctor`; tests in `src/panels/DoctorFix.test.tsx` | §10 | ⬜ | `npx vitest run src/panels/DoctorFix` |
+| 31 | **close a knowledge gap**: in the gaps panel (26) a Close button per question → `/vyom/act` `gap_close` with its number `n` (1 = the first row shown); confirm first, then refetch `/vyom/gaps`; tests in `src/panels/GapsClose.test.tsx` | §10 | ⬜ | `npx vitest run src/panels/GapsClose` |
+| 32 | **actions log panel**: `/vyom/audit` - who did what, when, with which arguments, and the result (`phase` start/done, `rc`), newest first; tests in `src/panels/Audit.test.tsx` | §10 | ⬜ | `npx vitest run src/panels/Audit` |
+| 33 | **finish line**: one e2e test opens the deck with every endpoint fixtured and asserts every panel heading is visible, no console errors, and every button is reachable by keyboard (Tab) with a visible focus; fix what it finds; tests in `e2e/finish.spec.ts` | §10 | ⬜ | `npx playwright test e2e/finish.spec.ts` 👀 the whole deck once at 1280 and 1920 |
 
 **☁ and 👀 in the table (140).** ☁ in a slice = design-heavy: `ojas build` runs that one
 on your Claude plan, the rest on the local coder. 👀 in a PROOF = after the commands pass,
@@ -476,7 +481,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 647 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 656 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
@@ -919,6 +924,33 @@ its `why` - never an empty list. **Server text is shown as TEXT** - never `dange
 - States to cover in every panel: loading, built with rows, built with zero rows (says so), NOT BUILT
   with its why, 403 not permitted.
 - Commands (`next`) are monospace with a Copy button; a failed copy says so (no unhandled promise).
+
+## 10 · Phase 4 - acting from the deck, and the finish line (7 Oct 2026; due Friday 9 Oct)
+
+The deck stops being read-only for the founder: approve, reopen, defer, fix and close - each one a
+NAMED action on the server (runbook 173), never a free command. Everything else stays refused.
+
+**`POST /vyom/act`** - founder (admin) only; JSON body `{action, args}`; same-origin; at most 2 KB.
+
+| action | args | does |
+|---|---|---|
+| `slice_approve` | `{slice}` | `ojas build --approve <slice>` |
+| `slice_reopen` | `{slice, note}` (note required, ≤ 500 chars) | `ojas build --reopen <slice> '<note>'` |
+| `slice_defer` | `{slice, note}` (reason required) | `ojas build --defer <slice> '<note>'` |
+| `doctor_fix` | `{}` | `ojas doctor --fix` (the safe fixes only) |
+| `gap_close` | `{n}` (1 = first gap shown) | `ojas gaps --done <n>` |
+
+Answers: **200** `{built: true, action, ok, rc, output}` (output = the last 40 lines) · **400**
+`{error: "unknown_action" | "invalid_arguments", why}` · **401** `login_required` · **403**
+`not_permitted` / `password_change_required` / `local_origin_required` · **409** `build_running`
+(a night/day build holds the lock - say so, do not retry automatically) · **413** · **415**.
+
+**`GET /vyom/audit`** - founder: `{built, count, entries: [{at, user, action, args, phase, rc?}]}`, newest first.
+
+- ONE `post()` in `api.ts` next to `get()` (JSON, same origin, the same 401/403 handling) - no other fetch for actions.
+- Every action asks to confirm, disables its button while running, shows the result in monospace.
+- The e2e harness gets fixtures for `POST /vyom/act` and `GET /vyom/audit` (it refuses requests it has no fixture for).
+- **Done = every slice in §0 is ✅, 👀 or yours (9, 11); slice 33's finish-line test passes.**
 
 ## 7 · How to drive the Dev Agent through this
 
