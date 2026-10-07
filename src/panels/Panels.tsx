@@ -5,8 +5,9 @@ import { NotBuilt } from '../NotBuilt'
 import { DoctorPanel } from './Doctor'
 import { BuildPanel, type BuildResponse } from './Build'
 import { NightPanel, type NightResponse } from './Night'
+import { GapsPanel, type GapsResponse } from './Gaps'
 
-export { DoctorPanel, BuildPanel, NightPanel }
+export { DoctorPanel, BuildPanel, NightPanel, GapsPanel }
 
 /** Fetch one endpoint through api.ts get(); a network or 5xx failure is NOT BUILT "<path> unreachable".
  *  A 401 is already on its way to login, so the panel shows nothing of its own. */
@@ -148,6 +149,7 @@ export function Panels() {
   const doctor = useEndpoint<DoctorResponse>('/vyom/doctor')
   const build = useEndpoint<BuildResponse>('/vyom/build')
   const night = useEndpoint<NightResponse>('/vyom/night')
+  const gaps = useEndpoint<GapsResponse>('/vyom/gaps')
   return (
     <div className="cd-grid" id="sec-panels">
       <HealthPanel panel={health} />
@@ -160,6 +162,7 @@ export function Panels() {
       <DoctorPanel panel={doctor} />
       <BuildPanel panel={build} />
       <NightPanel panel={night} />
+      <GapsPanel panel={gaps} />
     </div>
   )
 }

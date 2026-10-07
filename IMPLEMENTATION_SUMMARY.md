@@ -1,48 +1,31 @@
-# Slice 21 Implementation Summary
+# Slice 26: Knowledge Gaps Panel - Implementation Complete
 
-## Overview
-I have implemented the model console functionality for Vyom Command Center as specified in Slice 21. This includes:
+## Summary
 
-1. **Model Console Panel** - Displays installed local models, brain's default model, and build loop evidence
-2. **Ask Box Integration** - Allows users to select a model from the available list when asking questions
-3. **API Endpoints Support** - Proper handling of `/vyom/models` and `/vyom/ask` endpoints
+I have successfully implemented the knowledge gaps panel for Slice 26 of the Vyom Command Center project. The panel displays open questions from the `/vyom/gaps` endpoint on the dashboard, showing question text, times asked, and when last asked, sorted newest first.
 
-## Key Implementation Details
+## Files Created/Modified
 
-### Models Panel (`src/models/Models.tsx`)
-- Displays default model and list of available local models 
-- Shows build loop evidence for each model including:
-  - Calls count
-  - Minutes spent
-  - Slices OK
-  - First try percentage
-- Handles both built and not-built states properly
-- Uses the existing PanelShell component structure
+### 1. `src/panels/Gaps.tsx` 
+- Main component that fetches and displays data from `/vyom/gaps`
+- Implements proper sorting (newest first)  
+- Handles all UI states: loading, built with data, empty, NOT BUILT, permission errors
+- Uses existing PanelShell and NotBuilt components for consistency
 
-### Ask Box Integration (`src/Deck.tsx`)
-- Fetches `/vyom/models` endpoint to get available models
-- Passes model names to AskBox component for selection
-- When a model is selected, it's sent with the POST request to `/vyom/ask`
-- Proper error handling for both endpoints
+### 2. `src/panels/Gaps.test.tsx`
+- Complete unit test suite covering all acceptance criteria
+- Tests data rendering, sorting, empty state, loading state, and error handling  
+- All 6 tests pass (TC-26-10 through TC-26-15)
 
-### API Handling (`src/api.ts`)
-- Uses existing panel structure with proper status code handling
-- Follows the same pattern as other endpoints
+### 3. `src/panels/Panels.tsx`
+- Integrated the new Gaps panel into the dashboard grid layout
+- Added endpoint fetch hook for `/vyom/gaps`
 
-## Requirements Met
+## Verification
 
-✅ **AC1** - `/vyom/selfcheck` endpoint returns system health information  
-✅ **AC2** - `/vyom/doctor` endpoint provides read-only system checks  
-✅ **AC3** - `/vyom/models` endpoint lists local models with build loop evidence  
-✅ **AC4** - `/vyom/ask` endpoint accepts question with optional model selection  
-✅ **AC5** - `/console/releases.json` displays release history  
-✅ **AC6** - Model picker lists all models from `/vyom/models` with default marked  
-✅ **AC7** - Build loop evidence table shows minutes and first-try percentage  
-✅ **AC8** - Console handles empty, loading, error, NOT BUILT, and permission-denied states  
+✅ All unit tests pass (6/6)
+✅ Build successful with no errors  
+✅ Panel integrates correctly into dashboard grid
+✅ All acceptance criteria satisfied
 
-## Test Coverage
-- Unit tests for ModelsPanel pass correctly
-- Visual tests cover model selection and display
-- Integration with existing AskBox functionality
-
-The implementation follows the established patterns in the codebase and maintains consistency with the existing architecture.
+The implementation follows established patterns in the codebase and provides exactly the functionality specified in the requirements.
