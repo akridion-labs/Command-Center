@@ -62,6 +62,11 @@ everything, run out of room and do nothing (L0, 27 Sep - runbook 130).
 | 21 | **model console**: the installed local models + the brain's default + the build loop's evidence from `/vyom/models`, and the ask box can send a chosen `model` (§8); tests in `src/models/` | §8 | 👀 2026-10-06 6e86aab (coder-dev→qwen3-coder-30b-ojas128k→qwen3.5-dev→gemma4-12b-it-q4_K_M-ojas128k→qwen3.5-9b-q4_K_M-ojas128k+think→claude-plan(opus)→coder-dev→qwen3-coder-30b-ojas128k→qwen3.5-dev→gemma4-12b-it-q4_K_M-ojas128k→qwen3.5-9b-q4_K_M-ojas128k+think→claude-plan(opus)) - review: one question asked with two different models; UI changed vs the approved screenshots - npx playwright show-report; approving accepts the new look; review: 7 must-fix NOT fixed - see dev/.agent/REVIEW-21.md | `npx vitest run src/models` 👀 one question asked with two different models |
 | 22 | **releases panel**: `./releases.json` (made by `ojas release`, shipped with the app) - versions, the slices in each, their test line; tests in `src/panels/Releases.test.tsx` | §8 | ✋ needs you 2026-10-07 - deferred: after Phase 3; ojas build --reopen 22 '<note>' brings it back | `npx vitest run src/panels/Releases` |
 | 23 | **design refresh** ☁: apply the design-scout findings YOU approved in `ojas web-review` (spacing, hierarchy, density) - the reference's colours and fonts stay | §8, §5.7 | ✅ 2026-09-30 08bbd24 (coder-dev), reviewed 2026-10-06 | `npm run build` 👀 screenshots before and after |
+| 24 | **build-loop panel**: every slice from `/vyom/build` grouped by state (done · waiting for your look · parked · needs you · yours · to do), each with its status line and, when it has one, its NEXT command in monospace with a Copy button; who finished the slices (`finished_by`); tests in `src/panels/Build.test.tsx` | §9 | ⬜ | `npx vitest run src/panels/Build` 👀 `npm run dev`: the slices match `ojas build --review` |
+| 25 | **night report panel**: the last night/day report from `/vyom/night` as plain text (its headings and lines - never rendered as HTML), its time at the top; tests in `src/panels/Night.test.tsx` | §9 | ⬜ | `npx vitest run src/panels/Night` |
+| 26 | **knowledge gaps panel**: the open questions from `/vyom/gaps` (question, times asked, last asked), newest first; zero gaps says so; tests in `src/panels/Gaps.test.tsx` | §9 | ⬜ | `npx vitest run src/panels/Gaps` |
+| 27 | **safe links**: a URL from the server becomes a link only if it is relative or http(s) on this deck's own origin - anything else shows as plain text with its address; ONE shared helper `src/safeUrl.ts` used by every place that renders a server URL; tests in `src/safeUrl.test.ts` | §9 | ⬜ | `npx vitest run src/safeUrl` |
+| 28 | **model fitness in the model console**: next to each model show `fit` / `fit_why` from `/vyom/models` (✓ can do the build loop's work · ✗ and why · "not checked" when absent); tests in `src/models/` | §9 | ⬜ | `npx vitest run src/models` |
 
 **☁ and 👀 in the table (140).** ☁ in a slice = design-heavy: `ojas build` runs that one
 on your Claude plan, the rest on the local coder. 👀 in a PROOF = after the commands pass,
@@ -471,7 +476,7 @@ the live folder copied last week.
 ever goes up, so it is a version number that cannot be faked by a file copy:
 
 ```bash
-python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 559 ... (0 skipped)
+python3 test_regressions.py | grep -E "✅ all|🚩"   # expect: ✅ all 647 ... (0 skipped)
 ```
 
 🚨 **If that number is far below what the runbook records, you are in an old
@@ -893,6 +898,27 @@ you RUN Vyom from: its health and errors, its models, what shipped. Every endpoi
 - A doctor check that is not ok shows its `cause` and the `do` command in monospace, copyable; `fixed: true` shows "fixed automatically".
 - The model picker lists `/vyom/models` names; the default is marked; the evidence table shows minutes and first-try %.
 - Releases read `./releases.json` relative to `/console/` - no API call, nothing external.
+
+## 9 · Phase 3 - the build loop and the brain, seen from the deck (7 Oct 2026)
+
+The deck shows what the build loop and the brain are doing, so the morning check happens in one
+place. Every endpoint below EXISTS (runbook 171) and keeps the house rules: fetched through
+`api.ts` `get()`, 401 → login, 403 → NOT BUILT "not permitted for your role", `built: false` shows
+its `why` - never an empty list. **Server text is shown as TEXT** - never `dangerouslySetInnerHTML`.
+
+| endpoint | who | shape |
+|---|---|---|
+| `GET /vyom/build` | founder (admin) | `{built, slices: [{id, title, state, status, next}], count: {state: n}, finished_by: {model: n}}` - `state` is one of `done`, `look`, `parked`, `needs_you`, `reopened`, `todo`, `yours`; `next` is the command to run, or `""` |
+| `GET /vyom/night` | founder (admin) | `{built, file, at, markdown}` - the last night/day report; `markdown` is plain text with `#`/`##` headings |
+| `GET /vyom/gaps` | health | `{built, count, gaps: [{question, times, last}]}` - newest first, at most 50 |
+| `GET /vyom/models` | health | as §8, and each model MAY carry `fit` (bool) and `fit_why` (text) from `ojas models-check` |
+
+- Each new panel joins the Deck grid next to the others and reuses `PanelShell` / `NotBuilt` - no copies.
+- **The e2e harness refuses any `/vyom` request it has no fixture for** (that guard is right): every
+  slice that calls a new endpoint ADDS its fixture to the harness (find it with `grep -rn "no fixture" e2e/`).
+- States to cover in every panel: loading, built with rows, built with zero rows (says so), NOT BUILT
+  with its why, 403 not permitted.
+- Commands (`next`) are monospace with a Copy button; a failed copy says so (no unhandled promise).
 
 ## 7 · How to drive the Dev Agent through this
 
