@@ -5,3 +5,15 @@
 @import '@fontsource/rajdhani/700.css';
 @import '@fontsource/jetbrains-mono/400.css';
 @import '@fontsource/jetbrains-mono/600.css';
+
+/* The report scrolls inside its panel so a long night never stretches the grid. */
+.night-report-at {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.night-report-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  max-height: 300px;
+}

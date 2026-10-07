@@ -4,15 +4,19 @@ import { PanelShell } from '../PanelShell'
 import { NotBuilt } from '../NotBuilt'
 import { DoctorPanel } from './Doctor'
 import { BuildPanel, type BuildResponse } from './Build'
+import { NightPanel, type NightResponse } from './Night'
 
-export { DoctorPanel, BuildPanel }
+export { DoctorPanel, BuildPanel, NightPanel }
 
-/** Fetch one endpoint through api.ts get(); a network or 5xx failure is NOT BUILT "<path> unreachable". */
+/** Fetch one endpoint through api.ts get(); a network or 5xx failure is NOT BUILT "<path> unreachable".
+ *  A 401 is already on its way to login, so the panel shows nothing of its own. */
 export function useEndpoint<T>(path: string): Panel<T> | null {
   const [panel, setPanel] = useState<Panel<T> | null>(null)
   useEffect(() => {
     let live = true
-    get<T>(path).then((p) => live && setPanel(p)).catch(() => live && setPanel({ built: false, why: `${path} unreachable` }))
+    get<T>(path).then((p) => live && setPanel(p)).catch((e: unknown) => {
+      if (live && !(e instanceof Error && e.message === 'login')) setPanel({ built: false, why: `${path} unreachable` })
+    })
     return () => { live = false }
   }, [path])
   return panel
@@ -143,6 +147,7 @@ export function Panels() {
   const selfcheck = useEndpoint<Row>('/vyom/selfcheck')
   const doctor = useEndpoint<DoctorResponse>('/vyom/doctor')
   const build = useEndpoint<BuildResponse>('/vyom/build')
+  const night = useEndpoint<NightResponse>('/vyom/night')
   return (
     <div className="cd-grid" id="sec-panels">
       <HealthPanel panel={health} />
@@ -154,6 +159,7 @@ export function Panels() {
       <SelfCheckPanel panel={selfcheck} />
       <DoctorPanel panel={doctor} />
       <BuildPanel panel={build} />
+      <NightPanel panel={night} />
     </div>
   )
 }
