@@ -28,8 +28,8 @@ function sourceLabels(): string[] {
 }
 
 const TOOL_SOURCES = [
-  { title: 'self-check', url: 'http://localhost:8765/vyom/selfcheck', snippet: 'all checks ok' },
-  { title: 'weather', url: 'http://localhost:8765/tools/weather', snippet: 'light rain' },
+  { title: 'self-check', url: '/docs/selfcheck', snippet: 'all checks ok' },
+  { title: 'weather', url: '/docs/weather', snippet: 'light rain' },
 ]
 
 function askBodies(): Record<string, unknown>[] {

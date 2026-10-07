@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { Panel } from '../api'
 import { NotBuilt } from '../NotBuilt'
+import { safeUrl } from '../safeUrl'
 
 export interface Source {
   title: string
@@ -160,21 +161,33 @@ export function AskBox({ redirect = goTo, models, defaultModel, configProblem }:
                   <>
                     <h4 style={{ margin: '8px 0 4px 0', fontSize: 12, fontWeight: 700, color: '#39c6ff' }}>Sources</h4>
                     <ol data-testid="ask-sources" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                      {result.sources.map((source, index) => (
-                        <li key={`${index}:${source.url}`} style={{ marginBottom: 8, ...wrap }}>
-                          <a
-                            href={source.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ color: '#39c6ff', textDecoration: 'underline', ...wrap }}
-                          >
-                            {source.title?.trim() ? source.title : source.url}
-                          </a>
-                          <p style={{ margin: '4px 0 0 0', fontSize: 12, color: '#8695a8', ...wrap }}>
-                            {source.snippet}
-                          </p>
-                        </li>
-                      ))}
+                      {result.sources.map((source, index) => {
+                        const link = safeUrl(source.url)
+                        const title = typeof source.title === 'string' ? source.title.trim() : ''
+                        return (
+                          <li key={index} data-testid="ask-source" style={{ marginBottom: 8, ...wrap }}>
+                            {link.isSafe ? (
+                              <a
+                                href={link.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: '#39c6ff', textDecoration: 'underline', ...wrap }}
+                              >
+                                {title || link.href}
+                              </a>
+                            ) : (
+                              <span data-testid="ask-source-text" style={{ color: '#8695a8', ...wrap }}>
+                                {title}
+                                {title && link.text ? ' ' : ''}
+                                {link.text ? <code data-testid="ask-source-address">{link.text}</code> : null}
+                              </span>
+                            )}
+                            <p style={{ margin: '4px 0 0 0', fontSize: 12, color: '#8695a8', ...wrap }}>
+                              {source.snippet}
+                            </p>
+                          </li>
+                        )
+                      })}
                     </ol>
                   </>
                 ) : (

@@ -2,8 +2,8 @@ import { test, expect, openConsole, panel, PANELS, type Deck } from './fixtures'
 import type { Page } from '@playwright/test'
 
 const TOOL_SOURCES = [
-  { title: 'self-check', url: 'http://localhost:8765/vyom/selfcheck', snippet: 'all checks ok' },
-  { title: 'weather', url: 'http://localhost:8765/tools/weather', snippet: 'light rain' },
+  { title: 'self-check', url: '/docs/selfcheck', snippet: 'all checks ok' },
+  { title: 'weather', url: '/docs/weather', snippet: 'light rain' },
 ]
 
 async function ask(page: Page, question: string) {
@@ -28,7 +28,7 @@ test.describe('Story 13 - conversational ask box', () => {
   test('TC-13-12: Given the answer has 50+ sources When it renders Then every label shows and the screenshot shows no overflow, overlap or cut-off list', async ({ page, deck }) => {
     const manySources = Array.from({ length: 50 }, (_, i) => ({
       title: `Source ${i + 1}`,
-      url: `http://localhost:8765/source/${i + 1}`,
+      url: `/docs/source/${i + 1}`,
       snippet: `Snippet for source ${i + 1}`
     }))
     deck.use('ask', { body: { answer: 'Many sources', sources: manySources } })
