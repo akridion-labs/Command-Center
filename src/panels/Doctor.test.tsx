@@ -39,11 +39,8 @@ describe('DoctorPanel', () => {
     render(<LoadedDoctor />)
     expect(screen.getByText('loading…').textContent).toBe('loading…')
     await screen.findByText('GPU memory near capacity')
-    // The panel makes 3 calls: doctor, models, releases. We only verify the doctor call is present
-    const urls = fetchMock.mock.calls.map(([url]) => url)
-    expect(urls).toContain('/vyom/doctor')
-    expect(urls).toContain('/vyom/models')
-    expect(urls).toContain('/console/releases.json')
+    // models and releases belong to the Deck's own sections; this panel makes exactly one call
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['/vyom/doctor'])
     expect(items().length).toBe(3)
   })
 
