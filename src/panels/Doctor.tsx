@@ -21,11 +21,23 @@ export function DoctorPanel({ panel }: { panel: Panel<DoctorResponse> | null }) 
   const [releases, setReleases] = useState<Release[]>([])
 
   useEffect(() => {
-    // Load release history from static file
-    fetch('/console/releases.json')
-      .then(response => response.json())
-      .then((data: unknown) => setReleases(Array.isArray(data) ? data : []))
-      .catch(() => setReleases([]))
+    // Load release history from static file - handle cases where fetch might not be available in test env
+    const loadReleases = async () => {
+      try {
+        const response = await fetch('/console/releases.json')
+        if (!response.ok) {
+          setReleases([])
+          return
+        }
+        const data = await response.json()
+        setReleases(Array.isArray(data) ? data : [])
+      } catch (error) {
+        // In test environments or when fetch fails, we just show no releases
+        setReleases([])
+      }
+    }
+
+    loadReleases()
   }, [])
 
   return (
